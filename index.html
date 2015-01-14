@@ -23,9 +23,9 @@ window.addEventListener( 'load', function () {
             headerButtons.style.top = (header.clientHeight - wh) + 'px';
             main.style.paddingTop = header.clientHeight + 'px';
             console.log( evt );
-            if ( evt instanceof Object ) {
-                setTimeout( _Resize, 500 );
-            }
+//            if ( evt instanceof Object ) {
+//                setTimeout( _Resize, 500 );
+//            }
         };
     _Resize();
     window.addEventListener( 'resize', _Resize, false );
