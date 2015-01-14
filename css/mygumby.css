@@ -4984,8 +4984,14 @@ i.icon-cog:before {
 }
 
 i.icon-tools:before {
-  content: "\2692";
-  height: inherit;
+    content: "";
+    background-image: url("../img/nodejs_logo.png");
+    width: 120%;
+    height: 120%;
+    background-size: contain;
+    position: absolute;
+    left: -10%;
+    top: -12%;
 }
 
 .icon-share.icon-left a:before, .icon-share.icon-right a:after {
