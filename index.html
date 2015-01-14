@@ -11,9 +11,9 @@ window.addEventListener( 'load', function () {
         headerContent = header.querySelector( '#header-content' ),
         main = document.querySelector( '.site-main-content' ),
         headerButtons = main.querySelector( '#header-buttons' ),
-        _Resize = function () {
+        _Resize = function (evt) {
             var w = headerContent.clientHeight * 2,
-                ww = headerContent.clientWidth * 0.38,
+                ww = w * 0.38,
                 wh = headerContent.clientHeight * 0.32;
             headerContent.style.width = w + 'px';
             headerContent.style.left = ((window.innerWidth - w) / 2) + 'px';
@@ -22,9 +22,17 @@ window.addEventListener( 'load', function () {
             headerButtons.style.left = ((window.innerWidth - ww) / 2) + 'px';
             headerButtons.style.top = (header.clientHeight - wh) + 'px';
             main.style.paddingTop = header.clientHeight + 'px';
+            console.log( evt );
+            if ( evt instanceof Object ) {
+                setTimeout( _Resize, 500 );
+            }
         };
     _Resize();
-    window.addEventListener( 'resize', _Resize )
+    window.addEventListener( 'resize', _Resize, false );
+    window.addEventListener( 'fullscreenchange', _Resize, false );
+    window.addEventListener( 'deviceorientation', _Resize, false );
+    
+    
 } )
   </script>
   <link rel="stylesheet" href="css/index.css">
