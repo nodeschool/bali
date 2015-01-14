@@ -4993,6 +4993,12 @@ i.icon-tools:before {
     left: -10%;
     top: -12%;
 }
+i.icon-tools:hover:before {
+    width: 130%;
+    height: 130%;
+    left: -15%;
+    top: -17%;
+}
 
 .icon-share.icon-left a:before, .icon-share.icon-right a:after {
   content: "\e73c";
