@@ -87,6 +87,7 @@ header {
     height: 100%;
     box-sizing: border-box;
     overflow: auto;
+    padding-top: 60%;
 }
 #main-content {
     background-color: papayawhip;
