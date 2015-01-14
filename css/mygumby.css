@@ -9105,7 +9105,7 @@ input::-moz-focus-inner {
 * Applied globally across the main content area.
 *****************************************************/
 .site-section {
-  padding-top: 90px;
+  padding-top: 40px;
   padding-bottom: 90px;
 }
 
