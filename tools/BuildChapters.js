@@ -45,6 +45,25 @@ var PullJSON = function (file) {
         "facebook": false,
         "repo": true
     },
+    OPT_STAT    = 'nothing',
+    OPT_UPDATE  = 'update',
+    OPT_REVERT  = 'revert',
+    OPT_REMOVE  = 'remove',
+    _MAXCLONEDEPTH = 6,
+    _cloneObject = function ( o, depth ) {
+        var d = {},
+            k, i;
+        if ( (depth || (depth = 1)) > _MAXCLONEDEPTH ) {
+            throw 'depth overflow at ' + depth;
+            return null
+        }
+        for ( k in o ) {
+            d[k] = ( (i = o[k]) instanceof Object && ! (i instanceof EventTarget) )
+                    ? _cloneObject( i, depth + 1 )
+                    : i;
+        }
+        return d
+    },
     _getRegions = function ( ) {
         var l = this.regions,
             r = {},
@@ -148,6 +167,14 @@ var PullJSON = function (file) {
         }
         return r
     },
+    _getChapterIndexFromRegionByName = function ( name ) {
+        var i = this.length;
+        name = name.toLowerCase();
+        while ( i-- )
+            if ( this.chapters[i].name.toLowerCase() === name )
+                break;
+        return i
+    },
     _getRegionByName = function ( name ) {
         var regions = this.regions,
             i = -1,
@@ -218,29 +245,149 @@ var PullJSON = function (file) {
         var r = this.regions[chapter.region],
             i = -1,
             a, c, d, region;
-
         if ( (region = _getRegionByName.call( this, chapter.region )) ) {
             if ( ! allowNewRegion ) {
                 alert( ['no such region "', chapter.region, '" in chapter "', chapter.name, '"'].join('') );
-                return null;
+                return null
             }
             this.regions.push( region = { region: chapter.region, count: 0, chapters: [] } );
         }
         region.count = region.chapters.push( chapter );
         return chapter
+    },
+    // this = new chapters object
+    _createBuildListOptions = function ( list, options, reverse ) {
+        var chapterList = _getChapters.call( list ),
+            newChapters = (this instanceof Window) ? {} : this,
+            ld = new Date( list['last-modified'] || null ),
+            nd = Date.now(),
+            c, o, cn, cd;
+        newChapters || (newChapters = {});
+        options || (options = {});
+        if ( reverse ) {
+            for ( cn in chapterList ) {
+                if ( ! (o = options[cn]) ) {
+                    c = chapterList[cn];
+                    cd = new Date( c['last-modified'] || nd );
+                    options[cn] = ( ld > cd ) ? OPT_REVERT : OPT_STAT;
+                }
+            }
+        } else {
+            for ( cn in chapterList ) {
+                if ( ! (o = options[cn]) ) {
+                    c = chapterList[cn];
+                    cd = new Date( c['last-modified'] || nd );
+                    options[cn] = ( ld < cd ) ? OPT_UPDATE : OPT_STAT;
+                }
+            }
+        }
+        
+        return options
+    },
+    // this = new chapters object
+    _buildList = function ( list, options, dest ) {
+        var chapterList = _getChapters.call( list ),
+            newChapters = (this instanceof Window) ? {} : this,
+            ld = new Date( list['last-modified'] || 0 ),
+            nd = Date.now(),
+            ct = 0,
+            rl, c, ci, r, nc, o, cn, cd, m;
+        if ( ! options )
+            options = _createBuildListOptions.call( list, {} )
+        dest || (dest = { "total": 0 });
+        dest.total = 0;
+        dest["last-modified"] || (dest["last-modified"] = nd.toUTCString());
+        rl = dest.regions || (dest.regions = []);
+        for ( cn in chapterList ) {
+            c = chapterList[cn];
+            nc = newChapters[cn];
+            switch ( m = options[cn] ) {
+                case OPT_STAT:
+                    if ( ! nc ) {
+                        alert( ['cannot update "', cn, '" because it doesn\'t exist'].join('') );
+                        return null
+                    }
+                    if ( ! nc.region ) {
+                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
+                        return null
+                    }
+                    if ( ! (r = _getRegionByName.call( list, nc.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
+                        r.count = r.chapters.push( _cloneObject( nc ) );
+                    } else {
+                        r.chapters[ci] = _cloneObject( nc );
+                    }
+                    ct++;
+                    break;
+                    
+                case OPT_UPDATE:
+                    if ( ! nc ) {
+                        alert( ['cannot update "', cn, '" because it doesn\'t exist'].join('') );
+                        return null
+                    }
+                    if ( ! nc.region ) {
+                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
+                        return null
+                    }
+                    if ( ! (r = _getRegionByName.call( dest, nc.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
+                        r.count = r.chapters.push( _cloneObject( nc ) );
+                    } else {
+                        r.chapters[ci] = _cloneObject( nc );
+                    }
+                    ct++;
+                    break;
+                    
+                case OPT_REVERT:
+                    if ( ! nc.region ) {
+                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
+                        return null
+                    }
+                    newChapters[cn] = c;
+                    if ( ! (r = _getRegionByName.call( dest, nc.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
+                        r.count = r.chapters.push( _cloneObject( c ) );
+                    } else {
+                        r.chapters[ci] = _cloneObject( c );
+                    }
+                    ct++;
+                    break;
+                    
+                case OPT_REMOVE:
+                    break;
+                    
+                default:
+                    throw 'bad build option ' + m;
+                    return null
+            }
+        }
+        dest.total = ct;
+        return dest
     };
 
 return Object.defineProperties( {}, {
     PullJSON: { value: PullJSON },
     PullHeaders: { value: PullHeaders },
     RegionFields: { value: _FIELDS },
+    OptionTypes: { value: Object.freeze( {
+        OPT_STAT:   OPT_STAT,
+        OPT_UPDATE: OPT_UPDATE,
+        OPT_REVERT: OPT_REVERT,
+        OPT_REMOVE: OPT_REMOVE
+    } ) },
     getRegions: { value: _getRegions },
     getChapters: { value: _getChapters },
     getOrganizers: { value: _getOrganizers },
     createChapter: { value: _createChapter },
     getRegionByName: { value: _getRegionByName },
     getChapterByName: { value: _getChapterByName },
+    getChapterIndexFromRegionByName: { value: _getChapterIndexFromRegionByName },
     removeChapterByName: { value: _removeChapterByName },
     removeChapter: { value: _removeChapter },
-    insertChapter: { value: _insertChapter }
+    insertChapter: { value: _insertChapter },
+    createBuildListOptions: { value: _createBuildListOptions },
+    buildList: { value: _buildList }
 } )

@@ -27,7 +27,6 @@ THE SOFTWARE.
         <title>Build Chapters</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="BuildChapters.js"></script>
         <link href='BuildChapters.css' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
         <script>
@@ -65,6 +64,7 @@ window.addEventListener( 'load', function () {
             "go-repo": { index: 9, action: function ( ) {} },
         },
         _WorkingChapter = {},
+        _ChapterCache = {},
         _DialogIsOpen = false,
         header = document.querySelector( 'header' ),
         main = document.querySelector( 'main' ),
@@ -166,11 +166,10 @@ window.addEventListener( 'load', function () {
     _setWorkingChapter();
     _resize();
     window.addEventListener( 'resize', _resize );
-//    code.appendChild( document.createTextNode(BuildChapters.PullJSON(_FILEPREFIX + 'chapters/list.json')))
     code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'list.json');
     code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
     list = BuildChapters.PullJSON(_FILEPREFIX + t);
-//    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
+    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
     code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList = BuildChapters.getRegions.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
     code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList = BuildChapters.getChapters.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
     code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList = BuildChapters.getOrganizers.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
@@ -182,5 +181,5 @@ window.addEventListener( 'load', function () {
 } )
         </script>
     </head>
-    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="working-chapter-name"></div><div id="controls"></div></header></body>
+    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
 </html>

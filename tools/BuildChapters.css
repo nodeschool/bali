@@ -64,8 +64,18 @@ code {
 }
 h2 { margin-bottom: 4px; }
 
+#cached-chapter-names {
+    position: absolute;
+    left: 240px;
+    top: 68px;
+    font-weight: bolder;
+}
+#cached-chapter-names input {
+    width: 200px;
+}
 #working-chapter-name {
     position: absolute;
+    left: 0px;
     top: 68px;
     font-weight: bolder;
 }
