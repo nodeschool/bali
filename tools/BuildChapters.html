@@ -175,18 +175,25 @@ window.addEventListener( 'load', function () {
     _setWorkingChapter();
     _resize();
     window.addEventListener( 'resize', _resize );
-    code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'list.json');
-    code.appendChild( document.createTextNode( listHeader = BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
-    list = BuildChapters.PullJSON(_FILEPREFIX + t);
-    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
-    code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList = BuildChapters.getRegions.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList = BuildChapters.getChapters.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList = BuildChapters.getOrganizers.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'countries[' + (o = Object.keys(countryList = BuildChapters.getCountries.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
-    _setListStatus( listHeader, chapterList, regionList, countryList, organizerList );
+    listHeader = BuildChapters.PullHeaders(t = _FILEPREFIX + 'list.json');
+    list = BuildChapters.PullJSON(t);
+    regionList = BuildChapters.getRegions.call(list);
+    chapterList = BuildChapters.getChapters.call(list);
+    organizerList = BuildChapters.getOrganizers.call(list);
+    countryList = BuildChapters.getCountries.call(list);
     
-    code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
-    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
+    _setListStatus( listHeader, chapterList, regionList, countryList, organizerList );
+    code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList)).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList)).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList)).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'countries[' + (o = Object.keys(countryList)).length + ']: ' + o.join(', ') + "\n" ) );
+    
+    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'list.json');
+    o.title = listHeader;
+    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
+    
+    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
+    o.title = (BuildChapters.PullHeaders(_FILEPREFIX + t));
     code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
     
 } )
