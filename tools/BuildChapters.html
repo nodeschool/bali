@@ -168,7 +168,7 @@ window.addEventListener( 'load', function () {
     window.addEventListener( 'resize', _resize );
 //    code.appendChild( document.createTextNode(BuildChapters.PullJSON(_FILEPREFIX + 'chapters/list.json')))
     code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'list.json');
-//    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
+    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
     list = BuildChapters.PullJSON(_FILEPREFIX + t);
 //    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
     code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList = BuildChapters.getRegions.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
