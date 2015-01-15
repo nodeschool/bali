@@ -64,6 +64,10 @@ var PullJSON = function (file) {
         }
         return d
     },
+    _extractHeader = function ( allHeaders, headerName ) {
+        var p = allHeaders.match( new RegExp( '^' + headerName + ':\s*(.+)$', 'mi' ) );
+        return p && p.length >= 2 && p[1]
+    },
     _getRegions = function ( ) {
         var l = this.regions,
             r = {},
@@ -73,6 +77,37 @@ var PullJSON = function (file) {
             if ( r[t.region] && confirm( ['duplicate region "', t.region, '". skip?'].join('') ) )
                 continue;
             r[t.region] = t;
+        }
+        c = {};
+        l = Object.keys( r );
+        l.sort();
+        i = -1;
+        while ( (t = l[++i]) )
+            c[t] = r[t];
+        return c
+    },
+    _getCountries = function ( ) {
+        var l = this.regions,
+            r = {},
+            i = -1,
+            c, j, k, q, s, t, u, v, w;
+        while( (t = l[++i]) ) {
+            u  = t.region;
+            q = t.chapters;
+            j = -1;
+            while ( (c = q[++j]) ) {
+                if ( r[c.name] && confirm( ['duplicate chapter "', c.name, '". skip?'].join('') ) ) {
+                    continue;
+                } else if ( c.region !== u && alert( ['chapter "', c.name, '" region is "', c.region, '", but listed within the "', u, '" region, fix the region?'].join('') ) ) {
+                    c.region = u;
+                } else if ( ( ! (v = c.country) ) && confirm( ['no country for ', c.name, ', use "unknown"?'].join('') ) ) {
+                    v = '??'
+                }
+                if( r[v] instanceof Array )
+                    r[v].push( c );
+                else
+                    r[v] = [c];
+            }
         }
         c = {};
         l = Object.keys( r );
@@ -378,7 +413,9 @@ return Object.defineProperties( {}, {
         OPT_REVERT: OPT_REVERT,
         OPT_REMOVE: OPT_REMOVE
     } ) },
+    extractHeader: { value: _extractHeader },
     getRegions: { value: _getRegions },
+    getCountries: { value: _getCountries },
     getChapters: { value: _getChapters },
     getOrganizers: { value: _getOrganizers },
     createChapter: { value: _createChapter },

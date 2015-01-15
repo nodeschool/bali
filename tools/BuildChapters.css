@@ -45,6 +45,11 @@ header {
     font-family: sans-serif;
     padding: 5px 10px;
 }
+header h1 {
+    font-size: 24px;
+    margin-top: 5px;
+}
+
 main {
     position: absolute;
     width: 100%;
@@ -66,26 +71,33 @@ h2 { margin-bottom: 4px; }
 
 #cached-chapter-names {
     position: absolute;
-    left: 240px;
-    top: 68px;
+    left: 10px;
+    top: 70px;
     font-weight: bolder;
 }
 #cached-chapter-names input {
-    width: 200px;
+    width: 160px;
 }
 #working-chapter-name {
     position: absolute;
     left: 0px;
-    top: 68px;
+    top: 48px;
     font-weight: bolder;
 }
 #working-chapter-name:empty {
-    display: none;
 }
 #working-chapter-name::before {
     content: 'Chapter: ';
+    margin-left: 10px;
     font-weight: normal;
 }
+header #list-status {
+    position: absolute;
+    left: 270px;
+    top: 10px;
+    font-size: 11pt;
+}
+
 
 .dialog-popup {
     position: absolute;
@@ -160,8 +172,8 @@ header #controls {
 /* buttons */
 .header-button {
     display: inline-block;
-    margin: -4px 0 0;
-    width: 86px;
+    margin: -4px -2px 0;
+    width: 84px;
     height: 96px;
     background-image: url(buttonsheet.png);
     background-repeat: no-repeat;

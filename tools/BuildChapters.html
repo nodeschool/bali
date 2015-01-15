@@ -69,6 +69,7 @@ window.addEventListener( 'load', function () {
         header = document.querySelector( 'header' ),
         main = document.querySelector( 'main' ),
         code = main.querySelector( 'code' ),
+        listStatus = header.querySelector( '#list-status' ),
         controls = header.querySelector( '#controls' ),
         workingChapterName = header.querySelector( '#working-chapter-name' ),
         _resize = function ( ) {
@@ -92,6 +93,14 @@ window.addEventListener( 'load', function () {
                 workingChapterName.textContent = ''
             }
             return chapter
+        },
+        _setListStatus = function ( listHeader, chapterList, regionList, countryList, organizerList ) {
+            var row;
+            (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total chapters: ' + Object.keys(chapterList).length;
+            (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total regions: ' + Object.keys(regionList).length;
+            (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total countries: ' + Object.keys(chapterList).length;
+            (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total organizers: ' + Object.keys(organizerList).length;
+            (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'modified: ' + (BuildChapters.extractHeader( listHeader, 'Last-Modified' ) || '?');
         },
         _closeDialog = function ( container ) {
             container.parentElement.removeChild( container ); 
@@ -154,7 +163,7 @@ window.addEventListener( 'load', function () {
             k.addEventListener( 'click', function () { _closeDialog( container ) }, false );
             return _openDialog( container, 'chapter-form form-mode' );
         },
-        list, regionList, chapterList, organizerList, chapter, t, o;
+        list, listHeader, regionList, chapterList, countryList, organizerList, chapter, t, o;
     for ( t in _CONTROLS ) {
         (o = document.createElement( 'div' ) ).className = 'header-button';
         o.title = _CONTROLS[t].label || t.replace( /\b[a-z]+\-?/g, function (i) { return i[0].toUpperCase() + i.slice(1) + ' ' } ).replace( /\-/, '' ).trim();
@@ -167,12 +176,14 @@ window.addEventListener( 'load', function () {
     _resize();
     window.addEventListener( 'resize', _resize );
     code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'list.json');
-    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
+    code.appendChild( document.createTextNode( listHeader = BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
     list = BuildChapters.PullJSON(_FILEPREFIX + t);
     code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
     code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList = BuildChapters.getRegions.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
     code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList = BuildChapters.getChapters.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
     code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList = BuildChapters.getOrganizers.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'countries[' + (o = Object.keys(countryList = BuildChapters.getCountries.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
+    _setListStatus( listHeader, chapterList, regionList, countryList, organizerList );
     
     code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
     code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
@@ -181,5 +192,5 @@ window.addEventListener( 'load', function () {
 } )
         </script>
     </head>
-    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
+    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="list-status"></div><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
 </html>
