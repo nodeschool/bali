@@ -183,10 +183,14 @@ window.addEventListener( 'load', function () {
     countryList = BuildChapters.getCountries.call(list);
     
     _setListStatus( listHeader, chapterList, regionList, countryList, organizerList );
-    code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList)).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList)).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList)).length + ']: ' + o.join(', ') + "\n" ) );
-    code.appendChild( document.createTextNode( 'countries[' + (o = Object.keys(countryList)).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createElement( 'b' ) ).textContent = 'chapters[' + (o = Object.keys(chapterList)).length + ']: ';
+    code.appendChild( document.createTextNode( o.join(', ') + "\n" ) );
+    code.appendChild( document.createElement( 'b' ) ).textContent = 'regions[' + (o = Object.keys(regionList)).length + ']: ';
+    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
+    code.appendChild( document.createElement( 'b' ) ).textContent = 'countries[' + (o = Object.keys(countryList)).length + ']: ';
+    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
+    code.appendChild( document.createElement( 'b' ) ).textContent = 'organizers[' + (o = Object.keys(organizerList)).length + ']: ';
+    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
     
     code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'list.json');
     o.title = listHeader;
