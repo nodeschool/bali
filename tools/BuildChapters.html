@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!--
+The MIT License
+
+Copyright 2015 Erich.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<html>
+    <head>
+        <title>Build Chapters</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="BuildChapters.js"></script>
+        <link href='BuildChapters.css' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+        <script>
+function require (file) {
+    var xhr = new XMLHttpRequest,
+        module = { exports: {} },
+        r;
+    xhr.open('get', file, false);
+    xhr.send(null);
+    return (r = xhr.responseText) ? (new Function ( 'module', ['var exports = module.exports;', r, '; return module.exports'].join('') ))(module) : null
+}
+window.addEventListener( 'load', function () {
+    if ( ! (self.BuildChapters = require( 'BuildChapters.js' )) ) {
+        return alert( 'failure to load libraries, maybe the internet is down' );
+    }
+    var _FILEPREFIX = 'chapters/',
+        _CONTROLS = {
+            "new-chapter": { index: 0, action: function () {
+                _chapterForm( function ( newChapter ) {
+                    
+                }, _WorkingChapter = { name: 'new chapter' } );
+            } },
+            "load-json": { index: 3, action: function ( ) {} },
+            "edit-chapter": { index: 1, action: function ( ) {
+                _chapterForm( function ( newChapter ) {
+                    
+                }, _WorkingChapter );
+            } },
+            "drop-chapter": { index: 2, action: function ( ) {} },
+            "save-json": { index: 4, action: function ( ) {} },
+            "check-json": { index: 5, action: function ( ) {} },
+            "build-list": { index: 6, action: function ( ) {} },
+            "search-json": { index: 7, action: function ( ) {} },
+            "view-json": { index: 8, action: function ( ) {} },
+            "go-repo": { index: 9, action: function ( ) {} },
+        },
+        _WorkingChapter = {},
+        _DialogIsOpen = false,
+        header = document.querySelector( 'header' ),
+        main = document.querySelector( 'main' ),
+        code = main.querySelector( 'code' ),
+        controls = header.querySelector( '#controls' ),
+        workingChapterName = header.querySelector( '#working-chapter-name' ),
+        _resize = function ( ) {
+            var h = window.innerHeight,
+                hh = header.clientHeight;
+            main.style.height = (h - hh) + 'px';
+        },
+        _requireWorkingChapterSelectors = '#action-edit-chapter,#action-drop-chapter,#action-save-json,#action-check-json',
+        _setWorkingChapter = function ( chapter ) {
+            workingChapterName.classList.remove( 'warning' );
+            if ( (_WorkingChapter = chapter) ) {
+                [].forEach.call( controls.querySelectorAll( _requireWorkingChapterSelectors ), function ( el ) { el.classList.remove( 'disabled' )} );
+                if ( chapter.name )
+                    workingChapterName.textContent = chapter.name
+                else {
+                    workingChapterName.textContent = 'unname'
+                    workingChapterName.classList.add( 'warning' );
+                }
+            } else {
+                [].forEach.call( controls.querySelectorAll( _requireWorkingChapterSelectors ), function ( el ) { el.classList.add( 'disabled' )} );
+                workingChapterName.textContent = ''
+            }
+            return chapter
+        },
+        _closeDialog = function ( container ) {
+            container.parentElement.removeChild( container ); 
+            controls.classList.remove( 'disabled' ); 
+            _DialogIsOpen = false;
+        },
+        _openDialog = function ( container, className ) {
+            _DialogIsOpen = true;
+            controls.classList.add( 'disabled' ); 
+            document.body.appendChild( container ).className = 'dialog-popup';
+            if ( className ) {
+                className.split( /\s+/ ).forEach( function ( cn ) {
+                    container.classList.add( cn )
+                } )
+            }
+            container.style.left = ((window.innerWidth - container.clientWidth) / 2) + 'px';
+            container.style.top = ((window.innerHeight - container.clientHeight) / 2.2) + 'px';
+            return container
+        },
+        _chapterForm = function ( callback, json, title ) {
+            var container = document.createElement( 'div' ),
+                form = container.appendChild( document.createElement( 'form' ) ),
+                textarea = container.appendChild( document.createElement( 'textarea' ) ),
+                i = -1,
+                row, input, k;
+            _setWorkingChapter( json || (json = {}) );
+            (row = form.appendChild( document.createElement( 'h1' ) )).textContent = title || 'Edit Chapter';
+            container.appendChild( row = document.createElement( 'div' ) ).id = 'dialog-controls';
+            row.appendChild( k = document.createElement( 'div' ) ).id = 'action-form-view';
+            k.title = 'form view';
+            k.className = 'dialog-button';
+            k.addEventListener( 'click', function ( ) {
+                    container.classList.remove( 'json-mode' )
+                    container.classList.add( 'form-mode' )
+                } );
+            row.appendChild( k = document.createElement( 'div' ) ).id = 'action-json-view';
+            k.title = 'json view';
+            k.className = 'dialog-button';
+            k.addEventListener( 'click', function ( ) {
+                    container.classList.add( 'json-mode' )
+                    container.classList.remove( 'form-mode' )
+                } );
+            for ( k in BuildChapters.RegionFields ) {
+                (row = form.appendChild( document.createElement( 'div' ) )).className = 'chapter-form-row';
+                row.id = 'chapter-form-' + k;
+                row.setAttribute( 'required', BuildChapters.RegionFields[k] ? 'true' : 'false' )
+                row.appendChild( document.createElement( 'label' ) ).textContent = k[0].toUpperCase() + k.slice( 1 ); 
+                row.appendChild( input = document.createElement( 'input' ) );
+                if ( json[k] != null )
+                    input.value = (json[k] instanceof Array) ? json[k].join(',') : json[k]
+                input.setAttribute( 'type', 'text' );
+                row.appendChild( document.createElement( 'status' ) );
+            }
+            row = form.appendChild( document.createElement( 'div' ) );
+            (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'SAVE';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () { (callback instanceof Function) && callback( container, json, title ); _closeDialog( container ) }, false );
+            (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () { _closeDialog( container ) }, false );
+            return _openDialog( container, 'chapter-form form-mode' );
+        },
+        list, regionList, chapterList, organizerList, chapter, t, o;
+    for ( t in _CONTROLS ) {
+        (o = document.createElement( 'div' ) ).className = 'header-button';
+        o.title = _CONTROLS[t].label || t.replace( /\b[a-z]+\-?/g, function (i) { return i[0].toUpperCase() + i.slice(1) + ' ' } ).replace( /\-/, '' ).trim();
+        controls.appendChild( o ).id = 'action-' + t;
+        o.addEventListener( 'click', (function ( callback ) {
+            return function ( ) { if ( _DialogIsOpen ) return; callback() }
+        })( _CONTROLS[t].action ), false )
+    }
+    _setWorkingChapter();
+    _resize();
+    window.addEventListener( 'resize', _resize );
+//    code.appendChild( document.createTextNode(BuildChapters.PullJSON(_FILEPREFIX + 'chapters/list.json')))
+    code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'list.json');
+//    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
+    list = BuildChapters.PullJSON(_FILEPREFIX + t);
+//    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
+    code.appendChild( document.createTextNode( 'regions[' + (o = Object.keys(regionList = BuildChapters.getRegions.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'chapters[' + (o = Object.keys(chapterList = BuildChapters.getChapters.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
+    code.appendChild( document.createTextNode( 'organizers[' + (o = Object.keys(organizerList = BuildChapters.getOrganizers.call(list))).length + ']: ' + o.join(', ') + "\n" ) );
+    
+    code.appendChild( document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
+    code.appendChild( document.createTextNode( BuildChapters.PullHeaders(_FILEPREFIX + t) ) );
+    code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
+    
+} )
+        </script>
+    </head>
+    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="working-chapter-name"></div><div id="controls"></div></header></body>
+</html>

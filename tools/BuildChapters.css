@@ -1,0 +1,200 @@
+/*
+The MIT License
+
+Copyright 2015 Erich.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+/* 
+    Created on : Jan 15, 2015, 10:55:51 AM
+    Author     : Erich
+*/
+
+html, body, root {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none 0px;
+    font-size: 12pt;
+}
+header {
+    position: absolute;
+    width: 100%;
+    height: 96px;
+    background-color: midnightblue;
+    color: lightcyan;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    padding: 5px 10px;
+}
+main {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding-top: 96px;
+    font-family: monospace;
+}
+code {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    white-space: pre;
+    overflow: scroll;
+    padding: 5px 10px;
+}
+h2 { margin-bottom: 4px; }
+
+#working-chapter-name {
+    position: absolute;
+    top: 68px;
+    font-weight: bolder;
+}
+#working-chapter-name:empty {
+    display: none;
+}
+#working-chapter-name::before {
+    content: 'Chapter: ';
+    font-weight: normal;
+}
+
+.dialog-popup {
+    position: absolute;
+    z-index: 10;
+    background-color: khaki;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 12px;
+    border: solid 1px tan;
+}
+
+.dialog-popup textarea {
+    position: absolute;
+    width: 460px;
+    height: 223px;
+    left: 6px;
+    top: 52px;
+    display: none;
+}
+.chapter-form {
+    width: 480px;
+}
+
+.chapter-form.json-mode textarea {
+    display: block;
+}
+.chapter-form h1 {
+    box-sizing: border-box;
+    font-size: 24pt;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.chapter-form-row {
+    width: 100%;
+    margin: 5px 0;
+}
+.chapter-form label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+.chapter-form input[type=text] {
+    width: 230px;
+    margin-left: 10px;
+}
+.chapter-form status {
+    display: inline-block;
+    width: 100px;
+    margin-left: 10px;
+}
+.chapter-form button {
+    display: inline-block;
+    width: 100px;
+    margin: 0 17px;
+    cursor: pointer;
+}
+
+header #controls {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
+.dialog-popup #dialog-controls {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
+/* buttons */
+.header-button {
+    display: inline-block;
+    margin: -4px 0 0;
+    width: 86px;
+    height: 96px;
+    background-image: url(buttonsheet.png);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#action-new-chapter { background-position: 0px 0px; }
+#action-edit-chapter { background-position: -96px 0px; }
+#action-drop-chapter { background-position: -192px 0px; }
+#action-load-json { background-position: -288px 0px; }
+#action-save-json { background-position: -384px 0px; }
+#action-check-json { background-position: -480px 0px; }
+#action-build-list { background-position: -576px 0px; }
+#action-search-json { background-position: -672px 0px; }
+#action-view-json { background-position: -768px 0px; }
+#action-go-repo { background-position: -864px 0px; }
+
+#controls>.header-button:hover { background-position-y: -96px; }
+#controls>.header-button:active,#controls>.header-button.active { background-position-y: -192px; }
+#controls.disabled>.header-button, #controls>.header-button.disabled { background-position-y: -288px !important; }
+
+.dialog-button {
+    display: inline-block;
+    margin: 0px 0 0;
+    width: 44px;
+    height: 48px;
+    background-image: url(dialogbuttonsheet.png);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#action-form-view { background-position: 0px 0px; }
+#action-json-view { background-position: -48px 0px; }
+
+#dialog-controls>.dialog-button:hover { background-position-y: -48px; }
+#dialog-controls>.dialog-button:active,
+#dialog-controls>.dialog-button.active {
+    background-position-y: -96px;
+}
+.chapter-form.json-mode #dialog-controls>#action-json-view.dialog-button {
+    background-position-y: -96px;
+}
+.chapter-form.form-mode #dialog-controls>#action-form-view.dialog-button {
+    background-position-y: -96px;
+}
+#dialog-controls.disabled>.dialog-button, #dialog-controls>.dialog-button.disabled { background-position-y: -144px !important; }
+
+/* END: buttons */
