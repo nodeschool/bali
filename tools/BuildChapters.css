@@ -110,21 +110,23 @@ header #list-status {
     border: solid 1px tan;
 }
 
-.dialog-popup textarea {
-    position: absolute;
-    width: 460px;
-    height: 223px;
-    left: 6px;
-    top: 52px;
-    display: none;
-}
 .chapter-form {
-    width: 480px;
+    width: 600px;
 }
 
-.chapter-form.json-mode textarea {
-    display: block;
+.dialog-popup textarea {
+    width: 550px;
+    height: 208px;
+    margin: 12px 10px;
+    display: none;
 }
+.chapter-form.json-mode textarea { display: block; }
+
+.dialog-popup form {
+    display: none;
+}
+.chapter-form.form-mode form { display: block; }
+
 .chapter-form h1 {
     box-sizing: border-box;
     font-size: 24pt;
@@ -138,7 +140,7 @@ header #list-status {
 }
 .chapter-form label {
     display: inline-block;
-    width: 100px;
+    width: 160px;
     text-align: right;
 }
 .chapter-form input[type=text] {
@@ -147,7 +149,8 @@ header #list-status {
 }
 .chapter-form status {
     display: inline-block;
-    width: 100px;
+    white-space: nowrap;
+    width: 160px;
     margin-left: 10px;
 }
 .chapter-form button {

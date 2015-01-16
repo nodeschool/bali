@@ -205,28 +205,24 @@ var PullJSON = function (file) {
             c[t] = r[t];
         return c
     },
-    _createChapter = function ( o, r ) {
-        var k;
-        if ( ! (r instanceof Object) )
-            r = {};
+    _createChapter = function ( o, dest ) {
+        var errors = {},
+            errcount = 0,
+            k;
+        if ( ! (dest instanceof Object) )
+            dest = {};
         for ( k in _FIELDS ) {
-            if ( _FIELDS[k] ) {
-                if ( ! o[k] || ! o[k].length ) {
-                    alert( 'missing ' + k + 'field' );
-                    return null
-                }
-            }
-            if ( ! o[k] && _FIELDS[k] ) {
-                alert( 'missing ' + k + 'field' );
-                return null
+            if ( _FIELDS[k] && ( ! o[k] || ! o[k].length ) ) {
+                errcount++;
+                errors[k] = k + ' required';
             }
             if ( k === 'organizers' ) {
-                r[k] = o[k] || [];
+                dest[k] = (o[k] || '').split( /\s*,\s*/ );
             } else {
-                r[k] = o[k] || '';
+                dest[k] = o[k] || '';
             }
         }
-        return r
+        return errcount ? errors : null
     },
     _getChapterIndexFromRegionByName = function ( name ) {
         var i = this.length;

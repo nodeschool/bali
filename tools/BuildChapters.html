@@ -182,27 +182,51 @@ window.addEventListener( 'load', function () {
         },
         _chapterForm = function ( callback, json, title ) {
             var container = document.createElement( 'div' ),
+                heading = container.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Edit Chapter',
                 form = container.appendChild( document.createElement( 'form' ) ),
                 textarea = container.appendChild( document.createElement( 'textarea' ) ),
                 i = -1,
                 row, input, k;
             _setWorkingChapter( json || (json = {}) );
-            (row = form.appendChild( document.createElement( 'h1' ) )).textContent = title || 'Edit Chapter';
             container.appendChild( row = document.createElement( 'div' ) ).id = 'dialog-controls';
             row.appendChild( k = document.createElement( 'div' ) ).id = 'action-form-view';
             k.title = 'form view';
             k.className = 'dialog-button';
             k.addEventListener( 'click', function ( ) {
+                var k;
+                if ( container.classList.contains( 'form-mode' ) )
+                    return;
+                try {
+                    json = JSON.parse( textarea.value );
+                    for ( k in BuildChapters.RegionFields )
+                        form.querySelector( '#chapter-form-' + k + ' input' ).value = ( json[k] instanceof Array )
+                            ? json[k].join( ', ' )
+                            : json[k] || ''
                     container.classList.remove( 'json-mode' )
                     container.classList.add( 'form-mode' )
-                } );
+                } catch (e) {
+                    alert( 'bad json' );
+                }
+            } );
             row.appendChild( k = document.createElement( 'div' ) ).id = 'action-json-view';
             k.title = 'json view';
             k.className = 'dialog-button';
             k.addEventListener( 'click', function ( ) {
-                    container.classList.add( 'json-mode' )
-                    container.classList.remove( 'form-mode' )
-                } );
+                var o = {}, k, errors;
+                if ( container.classList.contains( 'json-mode' ) )
+                    return;
+                for ( k in BuildChapters.RegionFields ) {
+                    form.querySelector( '#chapter-form-' + k + ' status' ).textContent = '';
+                    o[k] = form.querySelector( '#chapter-form-' + k + ' input' ).value;
+                }
+                if ( (errors = BuildChapters.createChapter( o, json )) ) {
+                    for ( k in errors )
+                        form.querySelector( '#chapter-form-' + k + ' status' ).textContent = errors[k]
+                }
+                textarea.value = JSON.stringify( json, null, 2 );
+                container.classList.add( 'json-mode' )
+                container.classList.remove( 'form-mode' )
+            } );
             for ( k in BuildChapters.RegionFields ) {
                 (row = form.appendChild( document.createElement( 'div' ) )).className = 'chapter-form-row';
                 row.id = 'chapter-form-' + k;
@@ -214,13 +238,18 @@ window.addEventListener( 'load', function () {
                 input.setAttribute( 'type', 'text' );
                 row.appendChild( document.createElement( 'status' ) );
             }
-            row = form.appendChild( document.createElement( 'div' ) );
+            row = container.appendChild( document.createElement( 'div' ) );
             (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'SAVE';
             k.setAttribute( 'type', 'button' );
-            k.addEventListener( 'click', function () { (callback instanceof Function) && callback( container, json, title ); _closeDialog( container ) }, false );
+            k.addEventListener( 'click', function () {
+                (callback instanceof Function) && callback( container, json, title );
+                _closeDialog( container )
+            }, false );
             (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
             k.setAttribute( 'type', 'button' );
-            k.addEventListener( 'click', function () { _closeDialog( container ) }, false );
+            k.addEventListener( 'click', function () {
+                _closeDialog( container )
+            }, false );
             return _openDialog( container, 'chapter-form form-mode' );
         },
         list, listHeader, statistics, regionList, chapterList, countryList, organizerList, chapter, t, o;
