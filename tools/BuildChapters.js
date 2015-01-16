@@ -68,54 +68,114 @@ var PullJSON = function (file) {
         var p = allHeaders.match( new RegExp( '^' + headerName + ':\s*(.+)$', 'mi' ) );
         return p && p.length >= 2 && p[1]
     },
-    _getRegions = function ( ) {
-        var l = this.regions,
-            r = {},
-            i = 0,
-            t, c;
-        while( (t = l[++i]) ) {
-            if ( r[t.region] && confirm( ['duplicate region "', t.region, '". skip?'].join('') ) )
-                continue;
-            r[t.region] = t;
-        }
-        c = {};
-        l = Object.keys( r );
-        l.sort();
-        i = -1;
-        while ( (t = l[++i]) )
-            c[t] = r[t];
-        return c
-    },
-    _getCountries = function ( ) {
-        var l = this.regions,
-            r = {},
-            i = -1,
-            c, j, k, q, s, t, u, v, w;
-        while( (t = l[++i]) ) {
-            u  = t.region;
-            q = t.chapters;
-            j = -1;
-            while ( (c = q[++j]) ) {
-                if ( r[c.name] && confirm( ['duplicate chapter "', c.name, '". skip?'].join('') ) ) {
-                    continue;
-                } else if ( c.region !== u && alert( ['chapter "', c.name, '" region is "', c.region, '", but listed within the "', u, '" region, fix the region?'].join('') ) ) {
-                    c.region = u;
-                } else if ( ( ! (v = c.country) ) && confirm( ['no country for ', c.name, ', use "unknown"?'].join('') ) ) {
-                    v = '??'
+    _getStatistics = function ( ) {
+        var chaptersList = {},
+            regionsList = {},
+            countriesList = {},
+            locationsList = {},
+            organizersList = {},
+            messages = [],
+            regions = this.regions, r, rn, ri = -1, rl = regions.length,
+            chapters, c, cn, ci, cl,
+            t, o, n, i, l;
+        while ( ++ri < rl ) {
+            if ( (r = regions[ri]) ) {
+                if ( ! (rn = r.region) ) {
+                    rn = '<no region>';
+                    messages.push( ['region has no name, using "', rn, '"'].join('') );
                 }
-                if( r[v] instanceof Array )
-                    r[v].push( c );
-                else
-                    r[v] = [c];
+                if ( regionsList[rn] ) {
+                    messages.push( ['duplicate region "', rn, '"(by name), combining'].join('') );
+                } else {
+                    regionsList[rn] = {};
+                }
+                cl = (chapters = r.chapters).length;
+                for ( ci = 0; ci < cl; ci++ ) {
+                    if ( (c = chapters[ci]) ) {
+                        // add chapter to chapter list
+                        if ( ! (cn = c.name) ) {
+                            t = 1;
+                            while ( chaptersList[n = '<no name#' + t + '>'] )
+                                t++;
+                            messages.push( ['chapter has no name, using "', n, '"'].join('') );
+                            cn = n;
+                        } else if ( chaptersList[cn] ) {
+                            t = 1;
+                            while ( chaptersList[n = cn + '<dup#' + t + '>'] )
+                                t++;
+                            messages.push( ['duplicate chapter "', cn, '"(by name), using "', n, '"'].join('') );
+                            cn = n;
+                        }
+                        chaptersList[cn] = c;
+                        
+                        // add chapter to region list
+                        if ( rn !== c.region ) {
+                            if ( c.region && regionsList[c.region] ) {
+                                messages.push( ['chapter "', cn, '"\'s region "', c.region, '" doesn\'t match parent region "', rn, '"(by name), using chapters region'].join('') );
+                                regionsList[c.region][cn] = c
+                            } else {
+                                messages.push( ['chapter "', cn, '"\'s region(non-existant) "', c.region, '" doesn\'t match parent region "', rn, '"(by name), using list region'].join('') );
+                                regionsList[rn][cn] = c
+                            }
+                        } else {
+                            regionsList[rn][cn] = c
+                        }
+                        
+                        // add chapter to country list
+                        if ( ! (n = c.country) ) {
+                            n = '<no country>';
+                            messages.push( ['chapter "', cn, '" has no country, using "', n, '"'].join('') );
+                        }
+                        if ( ! countriesList[n] )
+                            countriesList[n] = {};
+                        countriesList[n][cn] = c;
+                        
+                        // add chapter to location list
+                        if ( ! (n = c.location) ) {
+                            n = '<no location>';
+                            messages.push( ['chapter "', cn, '" has no location, using "', n, '"'].join('') );
+                        }
+                        if ( ! locationsList[n] )
+                            locationsList[n] = {};
+                        locationsList[n][cn] = c;
+                        
+                        // add chapter to organizers list
+                        if ( ! (o = c.organizers) || ! (l = o.length) ) {
+                            o = ['<no organizer>'];
+                            messages.push( ['chapter "', cn, '" has no organizer, using ', JSON.stringify( o )].join('') );
+                        }
+                        for ( i = 0; i < l; i++ ) {
+                            if ( ! organizersList[n = o[i]] )
+                                organizersList[n] = {};
+                            organizersList[n][cn] = c;
+                        }
+                        
+                    }
+                }
+                
+                // checking the regions chapter count
+                if ( r.count !== (t = Object.keys(regionsList[rn]).length) )
+                    messages.push( ['region "', rn, '" count(', r.count, ') does not match the number of chapters it contains(', t, ')'].join('') );
             }
         }
-        c = {};
-        l = Object.keys( r );
-        l.sort();
-        i = -1;
-        while ( (t = l[++i]) )
-            c[t] = r[t];
-        return c
+        
+        // checking the total chapter count
+        if ( this.total !== (t = Object.keys(chaptersList).length) )
+            messages.push( ['the main "list" total(', this.total, ') does not match the number of chapters it contains(', t, ')'].join('') );
+        
+        return {
+            chaptersList:   chaptersList,
+            regionsList:    regionsList,
+            countriesList:  countriesList,
+            locationsList:  locationsList,
+            organizersList: organizersList,
+            chaptersTotal:  Object.keys( chaptersList ).length,
+            regionTotal:    Object.keys( regionsList ).length,
+            countryTotal:   Object.keys( countriesList ).length,
+            locationTotal:  Object.keys( locationsList ).length,
+            organizerTotal: Object.keys( organizersList ).length,
+            messages:       messages
+        }
     },
     _getChapters = function ( ) {
         var l = this.regions,
@@ -139,40 +199,6 @@ var PullJSON = function (file) {
         l = Object.keys( r );
         if ( this.total !== l.length )
             alert( 'total(', this.total, ') mismatch, found ', l.length, ' chaptera' );
-        l.sort();
-        i = -1;
-        while ( (t = l[++i]) )
-            c[t] = r[t];
-        return c
-    },
-    _getOrganizers = function ( ) {
-        var l = this.regions,
-            r = {},
-            i = -1,
-            c, j, k, q, s, t, u, v, w;
-        while( (t = l[++i]) ) {
-            u  = t.region;
-            q = t.chapters;
-            j = -1;
-            while ( (c = q[++j]) ) {
-                if ( r[c.name] && confirm( ['duplicate chapter "', c.name, '". skip?'].join('') ) ) {
-                    continue;
-                } else if ( c.region !== u && alert( ['chapter "', c.name, '" region is "', c.region, '", but listed within the "', u, '" region, fix the region?'].join('') ) ) {
-                    c.region = u;
-                } else if ( ( ! (v = c.organizers) || ! v.length ) && confirm( ['no organizer for ', c.name, ', use anonymous?'].join('') ) ) {
-                    v = ['anonymous']
-                }
-                k = -1;
-                while ( (w = v[++k]) != null ) {
-                    if( r[w] instanceof Array )
-                        r[w].push( c );
-                    else
-                        r[w] = [c];
-                }
-            }
-        }
-        c = {};
-        l = Object.keys( r );
         l.sort();
         i = -1;
         while ( (t = l[++i]) )
@@ -414,10 +440,8 @@ return Object.defineProperties( {}, {
         OPT_REMOVE: OPT_REMOVE
     } ) },
     extractHeader: { value: _extractHeader },
-    getRegions: { value: _getRegions },
-    getCountries: { value: _getCountries },
     getChapters: { value: _getChapters },
-    getOrganizers: { value: _getOrganizers },
+    getStatistics: { value: _getStatistics },
     createChapter: { value: _createChapter },
     getRegionByName: { value: _getRegionByName },
     getChapterByName: { value: _getChapterByName },

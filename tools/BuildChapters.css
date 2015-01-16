@@ -220,3 +220,32 @@ header #controls {
 #dialog-controls.disabled>.dialog-button, #dialog-controls>.dialog-button.disabled { background-position-y: -144px !important; }
 
 /* END: buttons */
+
+#code-clear, #code-position {
+    position: absolute;
+    top: 100px;
+    width: 80px;
+    height: 48px;
+    line-height: 14pt;
+    opacity: 0.4;
+    font-size: 14pt;
+    color: darkgray;
+    transition: 500ms opacity,color;
+    -webkit-transition: 500ms opacity,color;
+    -moz-transition: 500ms opacity,color;
+    -o-transition: 500ms opacity,color;
+    -ms-transition: 500ms opacity,color;
+}
+#code-clear:hover, #code-position:hover {
+    opacity: 1.0;
+    color: black;
+}
+#code-clear {
+    right: 112px;
+}
+#code-position {
+    right: 24px;
+}
+#code-position:empty {
+    display: none;
+}

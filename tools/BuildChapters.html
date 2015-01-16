@@ -71,6 +71,7 @@ window.addEventListener( 'load', function () {
         code = main.querySelector( 'code' ),
         listStatus = header.querySelector( '#list-status' ),
         controls = header.querySelector( '#controls' ),
+        scrollButton = main.querySelector( '#code-position' ),
         workingChapterName = header.querySelector( '#working-chapter-name' ),
         _resize = function ( ) {
             var h = window.innerHeight,
@@ -93,6 +94,65 @@ window.addEventListener( 'load', function () {
                 workingChapterName.textContent = ''
             }
             return chapter
+        },
+        _createReportText = function ( label, treeList, hasSubChapters ) {
+            var line = document.createElement( 'span' ),
+                content = [],
+                names = Object.keys(treeList),
+                k, o;
+            if ( hasSubChapters ) {
+                for ( k in treeList )
+                    content.push( ['"', k, '"[', Object.keys(treeList[k]).length, ']'].join('') );
+            } else {
+                for ( k in treeList )
+                    content.push( ['"', k, '"'].join('') );
+            }
+            line.appendChild( document.createElement( 'b' ) ).textContent = label + '[' + names.length + ']: ';
+            line.appendChild( document.createTextNode( content.join(', ') ) );
+            return line
+        },
+        _printScroll = function ( pos ) {
+            code.scrollTop = pos == null ? code.scrollHeight - code.clientHeight : pos
+        },
+        _printClear = function ( ) { code.textContent = '' },
+        _println = function ( ) {
+            var ab = code.scrollTop + code.clientHeight >= code.scrollHeight,
+                i = -1,
+                n = arguments.length,
+                line = [],
+                a;
+            while ( ++i < n ) {
+                if ( (a = arguments[i]) instanceof HTMLElement ) {
+                    code.appendChild( a )
+                } else if ( typeof a === 'string' ) {
+                    code.appendChild( document.createTextNode( a ) )
+                } else {
+                    try {
+                        code.appendChild( document.createTextNode( JSON.stringify( a, null, 2 ) ) )
+                    } catch( e ) {
+                        code.appendChild( document.createTextNode( a.toString() ) )
+                    }
+                }
+            }
+            code.appendChild( document.createTextNode( "\n" ) );
+            if ( ab )
+                _printScroll()
+        },
+        _printStatistics = function ( statistics ) {
+            var t = document.createElement( 'h2' );
+            t.textContent = "chapters list\n";
+            _println( t );
+            (h = document.createElement( 'b' )).textContent = 'messages[' + statistics.messages.length + ']:';
+            if ( statistics.messages.length ) {
+                _println( h, "\n", statistics.messages.join( "\n" ) );
+            } else {
+                _println( h, ' (none)' );
+            }
+            _println( _createReportText( 'chapters', statistics.chaptersList ) );
+            _println( _createReportText( 'regions', statistics.regionsList, true ) );
+            _println( _createReportText( 'countries', statistics.countriesList, true ) );
+            _println( _createReportText( 'locations', statistics.locationsList, true ) );
+            _println( _createReportText( 'organizers', statistics.organizersList, true ) );
         },
         _setListStatus = function ( listHeader, chapterList, regionList, countryList, organizerList ) {
             var row;
@@ -163,7 +223,7 @@ window.addEventListener( 'load', function () {
             k.addEventListener( 'click', function () { _closeDialog( container ) }, false );
             return _openDialog( container, 'chapter-form form-mode' );
         },
-        list, listHeader, regionList, chapterList, countryList, organizerList, chapter, t, o;
+        list, listHeader, statistics, regionList, chapterList, countryList, organizerList, chapter, t, o;
     for ( t in _CONTROLS ) {
         (o = document.createElement( 'div' ) ).className = 'header-button';
         o.title = _CONTROLS[t].label || t.replace( /\b[a-z]+\-?/g, function (i) { return i[0].toUpperCase() + i.slice(1) + ' ' } ).replace( /\-/, '' ).trim();
@@ -172,36 +232,36 @@ window.addEventListener( 'load', function () {
             return function ( ) { if ( _DialogIsOpen ) return; callback() }
         })( _CONTROLS[t].action ), false )
     }
+    code.addEventListener( 'scroll', function () {
+        if ( code.scrollTop ) {
+            scrollButton.textContent = 'top'
+        } else {
+            scrollButton.textContent = 'bottom'
+        }
+    } );
+    scrollButton.addEventListener( 'click', function () {
+        _printScroll( (this.textContent === 'top') ? 0 : null )
+    } );
+    main.querySelector( '#code-clear' ).addEventListener( 'click', _printClear );
     _setWorkingChapter();
     _resize();
     window.addEventListener( 'resize', _resize );
     listHeader = BuildChapters.PullHeaders(t = _FILEPREFIX + 'list.json');
     list = BuildChapters.PullJSON(t);
-    regionList = BuildChapters.getRegions.call(list);
-    chapterList = BuildChapters.getChapters.call(list);
-    organizerList = BuildChapters.getOrganizers.call(list);
-    countryList = BuildChapters.getCountries.call(list);
-    
-    _setListStatus( listHeader, chapterList, regionList, countryList, organizerList );
-    code.appendChild( document.createElement( 'b' ) ).textContent = 'chapters[' + (o = Object.keys(chapterList)).length + ']: ';
-    code.appendChild( document.createTextNode( o.join(', ') + "\n" ) );
-    code.appendChild( document.createElement( 'b' ) ).textContent = 'regions[' + (o = Object.keys(regionList)).length + ']: ';
-    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
-    code.appendChild( document.createElement( 'b' ) ).textContent = 'countries[' + (o = Object.keys(countryList)).length + ']: ';
-    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
-    code.appendChild( document.createElement( 'b' ) ).textContent = 'organizers[' + (o = Object.keys(organizerList)).length + ']: ';
-    code.appendChild( document.createTextNode( o.join('[], ') + "[]\n" ) );
+    statistics = BuildChapters.getStatistics.call( list );
+    _setListStatus( listHeader, statistics.chaptersList, statistics.regionsList, statistics.countriesList, statistics.organizersList );
+    _printStatistics( statistics );
     
     code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'list.json');
     o.title = listHeader;
     code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
     
-    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
-    o.title = (BuildChapters.PullHeaders(_FILEPREFIX + t));
-    code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
+//    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
+//    o.title = (BuildChapters.PullHeaders(_FILEPREFIX + t));
+//    code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
     
 } )
         </script>
     </head>
-    <body><main><code></code></main><header><h1>Chapter Builder</h1><div id="list-status"></div><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
+    <body><main><code></code><button id="code-clear">clear</button><button id="code-position"></button></main><header><h1>Chapter Builder</h1><div id="list-status"></div><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
 </html>
