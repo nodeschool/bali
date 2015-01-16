@@ -42,7 +42,7 @@ window.addEventListener( 'load', function () {
     if ( ! (self.BuildChapters = require( 'BuildChapters.js' )) ) {
         return alert( 'failure to load libraries, maybe the internet is down' );
     }
-    var _FILEPREFIX = 'chapters/',
+    var _FILEPREFIX = '/chapters/',
         _CONTROLS = {
             "new-chapter": { index: 0, action: function () {
                 _chapterForm( function ( newChapter ) {
