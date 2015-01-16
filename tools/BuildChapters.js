@@ -217,7 +217,7 @@ var PullJSON = function (file) {
                 errors[k] = k + ' required';
             }
             if ( k === 'organizers' ) {
-                dest[k] = (o[k] || '').split( /\s*,\s*/ );
+                dest[k] = o[k] || [];
             } else {
                 dest[k] = o[k] || '';
             }
@@ -428,7 +428,7 @@ var PullJSON = function (file) {
 return Object.defineProperties( {}, {
     PullJSON: { value: PullJSON },
     PullHeaders: { value: PullHeaders },
-    RegionFields: { value: _FIELDS },
+    RegionFields: { value: Object.keys( _FIELDS ) },
     OptionTypes: { value: Object.freeze( {
         OPT_STAT:   OPT_STAT,
         OPT_UPDATE: OPT_UPDATE,

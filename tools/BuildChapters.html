@@ -182,75 +182,141 @@ window.addEventListener( 'load', function () {
         },
         _chapterForm = function ( callback, json, title ) {
             var container = document.createElement( 'div' ),
-                heading = container.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Edit Chapter',
-                form = container.appendChild( document.createElement( 'form' ) ),
-                textarea = container.appendChild( document.createElement( 'textarea' ) ),
+                head = container.appendChild( document.createElement( 'div' ) ),
+                body = container.appendChild( document.createElement( 'div' ) ),
+                foot = container.appendChild( document.createElement( 'div' ) ),
+                formView = body.appendChild( document.createElement( 'div' ) ),
+                jsonView = body.appendChild( document.createElement( 'div' ) ),
+                populateForm = function ( json ) {
+                    var data, errors, k, i;
+                    BuildChapters.RegionFields.forEach( function ( k ) {
+                        formView.querySelector( '#chapter-form-' + k + ' input' ).value = ((i = json[k]) instanceof Array)
+                                ? i.join( ', ' )
+                                : i || '';
+                    } );
+                    validateForm()
+                },
+                populateJSON = function ( json ) {
+                    jsonText.value = JSON.stringify( json, null, 2 );
+                    validateJSON();
+                },
+                validateForm = function () {
+                    var json = {},
+                        data = {},
+                        errors;
+                    BuildChapters.RegionFields.forEach( function ( k ) {
+                        data[k] = formView.querySelector( '#chapter-form-' + k + ' input' ).value;
+                    } );
+                    data.organizers = data.organizers.trim().split( /\s*,\s*/ );
+                    if ( (errors = BuildChapters.createChapter( data, json )) ) {
+                        BuildChapters.RegionFields.forEach( function ( k ) {
+                            formView.querySelector( '#chapter-form-' + k + ' status' ).textContent = errors[k]
+                                    ? errors[k]
+                                    : ''
+                        } );
+                        return false;
+                    }
+                    BuildChapters.RegionFields.forEach( function ( k ) {
+                        formView.querySelector( '#chapter-form-' + k + ' status' ).textContent = ''
+                    } );
+                    return json
+                },
+                validateJSON = function () {
+                    var json = {},
+                        data, errors, k;
+                    try {
+                        data = JSON.parse( jsonText.value );
+                    } catch (e) {
+                        jsonStatus.textContent = 'bad json syntax';
+                        return false
+                    }
+                    if ( (errors = BuildChapters.createChapter( data, json )) ) {
+                        jsonStatus.textContent = '';
+                        for ( k in errors )
+                            jsonStatus.appendChild( document.createElement( 'div' ) ).textContent = errors[k];
+                        return false;
+                    }
+                    return json
+                },
                 i = -1,
-                row, input, k;
-            _setWorkingChapter( json || (json = {}) );
-            container.appendChild( row = document.createElement( 'div' ) ).id = 'dialog-controls';
+                jsonText, jsonStatus, row, input, k;
+            
+            // body
+            body.className='dialog-body';
+            
+            // setup form view
+            formView.className = 'dialog-form-view';
+            BuildChapters.RegionFields.forEach( function ( k ) {
+                formView.appendChild( row = document.createElement( 'div' ) ).className = 'dialog-form-row';
+                row.id = 'chapter-form-' + k;
+                row.appendChild( document.createElement( 'label' ) ).textContent = k[0].toUpperCase() + k.slice( 1 ); 
+                row.appendChild( input = document.createElement( 'input' ) );
+                input.setAttribute( 'type', 'text' );
+                row.appendChild( document.createElement( 'status' ) );
+            } );
+            populateForm( json );
+            
+            // setup json view
+            jsonView.className = 'dialog-json-view';
+            (jsonText = jsonView.appendChild( document.createElement( 'textarea' ) )).className = 'dialog-json-textarea';
+            (jsonStatus = jsonView.appendChild( document.createElement( 'status' ) )).className = 'dialog-json-status';
+            populateJSON( json );
+            
+            // setup header
+            head.className = 'dialog-head';
+            head.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Edit Chapter'
+            head.appendChild( row = document.createElement( 'div' ) ).className = 'dialog-controls';
+            
             row.appendChild( k = document.createElement( 'div' ) ).id = 'action-form-view';
             k.title = 'form view';
             k.className = 'dialog-button';
             k.addEventListener( 'click', function ( ) {
-                var k;
+                var json;
                 if ( container.classList.contains( 'form-mode' ) )
                     return;
-                try {
-                    json = JSON.parse( textarea.value );
-                    for ( k in BuildChapters.RegionFields )
-                        form.querySelector( '#chapter-form-' + k + ' input' ).value = ( json[k] instanceof Array )
-                            ? json[k].join( ', ' )
-                            : json[k] || ''
-                    container.classList.remove( 'json-mode' )
-                    container.classList.add( 'form-mode' )
-                } catch (e) {
-                    alert( 'bad json' );
-                }
+                if ( ! (json = validateJSON()) ) {
+                    if ( ! confirm( 'you will loose your changes, continue?' ) )
+                        return;
+                } else
+                    populateForm( json );
+                container.classList.remove( 'json-mode' )
+                container.classList.add( 'form-mode' )
             } );
+            
             row.appendChild( k = document.createElement( 'div' ) ).id = 'action-json-view';
             k.title = 'json view';
             k.className = 'dialog-button';
             k.addEventListener( 'click', function ( ) {
-                var o = {}, k, errors;
+                var textarea = jsonView.querySelector( 'textarea' ),
+                    json, errors, k;
                 if ( container.classList.contains( 'json-mode' ) )
                     return;
-                for ( k in BuildChapters.RegionFields ) {
-                    form.querySelector( '#chapter-form-' + k + ' status' ).textContent = '';
-                    o[k] = form.querySelector( '#chapter-form-' + k + ' input' ).value;
-                }
-                if ( (errors = BuildChapters.createChapter( o, json )) ) {
-                    for ( k in errors )
-                        form.querySelector( '#chapter-form-' + k + ' status' ).textContent = errors[k]
-                }
-                textarea.value = JSON.stringify( json, null, 2 );
+                if ( ! (json = validateForm()) ) {
+                    if ( ! confirm( 'you will loose your changes, continue?' ) )
+                        return;
+                    container.classList.add( 'json-mode' )
+                } else
+                    populateJSON( json );
                 container.classList.add( 'json-mode' )
                 container.classList.remove( 'form-mode' )
             } );
-            for ( k in BuildChapters.RegionFields ) {
-                (row = form.appendChild( document.createElement( 'div' ) )).className = 'chapter-form-row';
-                row.id = 'chapter-form-' + k;
-                row.setAttribute( 'required', BuildChapters.RegionFields[k] ? 'true' : 'false' )
-                row.appendChild( document.createElement( 'label' ) ).textContent = k[0].toUpperCase() + k.slice( 1 ); 
-                row.appendChild( input = document.createElement( 'input' ) );
-                if ( json[k] != null )
-                    input.value = (json[k] instanceof Array) ? json[k].join(',') : json[k]
-                input.setAttribute( 'type', 'text' );
-                row.appendChild( document.createElement( 'status' ) );
-            }
-            row = container.appendChild( document.createElement( 'div' ) );
-            (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'SAVE';
+            
+            // setup footer
+            foot.className = 'dialog-foot';
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'SAVE';
             k.setAttribute( 'type', 'button' );
             k.addEventListener( 'click', function () {
                 (callback instanceof Function) && callback( container, json, title );
                 _closeDialog( container )
             }, false );
-            (k = row.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
             k.setAttribute( 'type', 'button' );
             k.addEventListener( 'click', function () {
                 _closeDialog( container )
             }, false );
-            return _openDialog( container, 'chapter-form form-mode' );
+            
+            _setWorkingChapter( json || (json = {}) );
+            return _openDialog( container, 'dialog-chapter form-mode' );
         },
         list, listHeader, statistics, regionList, chapterList, countryList, organizerList, chapter, t, o;
     for ( t in _CONTROLS ) {

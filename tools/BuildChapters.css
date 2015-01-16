@@ -69,6 +69,7 @@ code {
 }
 h2 { margin-bottom: 4px; }
 
+
 #cached-chapter-names {
     position: absolute;
     left: 10px;
@@ -91,74 +92,6 @@ h2 { margin-bottom: 4px; }
     margin-left: 10px;
     font-weight: normal;
 }
-header #list-status {
-    position: absolute;
-    left: 270px;
-    top: 10px;
-    font-size: 11pt;
-}
-
-
-.dialog-popup {
-    position: absolute;
-    z-index: 10;
-    background-color: khaki;
-    padding: 10px;
-    box-sizing: border-box;
-    text-align: center;
-    border-radius: 12px;
-    border: solid 1px tan;
-}
-
-.chapter-form {
-    width: 600px;
-}
-
-.dialog-popup textarea {
-    width: 550px;
-    height: 208px;
-    margin: 12px 10px;
-    display: none;
-}
-.chapter-form.json-mode textarea { display: block; }
-
-.dialog-popup form {
-    display: none;
-}
-.chapter-form.form-mode form { display: block; }
-
-.chapter-form h1 {
-    box-sizing: border-box;
-    font-size: 24pt;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-}
-.chapter-form-row {
-    width: 100%;
-    margin: 5px 0;
-}
-.chapter-form label {
-    display: inline-block;
-    width: 160px;
-    text-align: right;
-}
-.chapter-form input[type=text] {
-    width: 230px;
-    margin-left: 10px;
-}
-.chapter-form status {
-    display: inline-block;
-    white-space: nowrap;
-    width: 160px;
-    margin-left: 10px;
-}
-.chapter-form button {
-    display: inline-block;
-    width: 100px;
-    margin: 0 17px;
-    cursor: pointer;
-}
 
 header #controls {
     position: absolute;
@@ -166,11 +99,141 @@ header #controls {
     right: 10px;
 }
 
-.dialog-popup #dialog-controls {
+header #list-status {
     position: absolute;
-    top: 5px;
-    right: 10px;
+    left: 270px;
+    top: 10px;
+    font-size: 11pt;
 }
+
+/* popup dialog */
+.dialog-popup {
+    position: absolute;
+    z-index: 10;
+    background-color: khaki;
+    box-sizing: border-box;
+    text-align: center;
+    width: 480px;
+    padding: 10px;
+    border-radius: 12px;
+    border: solid 1px tan;
+    font-family: sans-serif;
+}
+
+.dialog-popup .dialog-head {
+    height: 48px;
+}
+.dialog-head h1 {
+    box-sizing: border-box;
+    font-size: 24pt;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.dialog-head .dialog-controls {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.dialog-popup .dialog-body {
+    position: relative;
+}
+.dialog-body>div {
+    position: absolute;
+    box-sizing: border-box;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+}
+.dialog-body textarea {
+    resize: none;
+}
+.dialog-body .dialog-form-view {
+    
+}
+.dialog-form-view>.dialog-form-row {
+    margin: 0 0 5px 0;
+}
+.dialog-body .dialog-json-view {
+    
+}
+.dialog-json-view>textarea,
+.dialog-json-view>status {
+    display: inline-block;
+    box-sizing: border-box;
+    height: 100%;
+    text-align: left;
+    vertical-align: top;
+}
+.dialog-json-view>textarea {
+}
+.dialog-json-view>status {
+}
+
+.dialog-popup .dialog-foot {
+    margin-top: 10px;
+}
+.dialog-foot button {
+    min-width: 96px;
+    height: 48px;
+    margin: 0 10px;
+}
+
+
+/* END: popup dialog */
+
+/* popup chapter dialog */
+.dialog-chapter {
+}
+.dialog-chapter .dialog-body {
+    height: 240px;
+}
+
+.dialog-chapter .dialog-form-view,
+.dialog-chapter .dialog-json-view {
+    display: none;
+}
+.dialog-chapter.form-mode .dialog-form-view {
+    display: block;
+}
+.dialog-chapter.json-mode .dialog-json-view {
+    display: block;
+}
+
+.dialog-chapter .dialog-form-row>label {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    margin-right: 5px;
+}
+.dialog-chapter .dialog-form-row>input[type=text] {
+    width: 180px;
+    margin-right: 5px;
+}
+.dialog-chapter .dialog-form-row>status {
+    display: inline-block;
+    width: 180px;
+    text-align: left;
+}
+
+.dialog-chapter .dialog-json-view>textarea {
+    width: 268px;
+    margin-left: -5px;
+    font-size: 11pt;
+}
+.dialog-chapter .dialog-json-view>status {
+    width: 180px;
+    padding-left: 5px;
+}
+
+/* END: popup chapter dialog */
+
 
 /* buttons */
 .header-button {
@@ -209,18 +272,18 @@ header #controls {
 #action-form-view { background-position: 0px 0px; }
 #action-json-view { background-position: -48px 0px; }
 
-#dialog-controls>.dialog-button:hover { background-position-y: -48px; }
-#dialog-controls>.dialog-button:active,
-#dialog-controls>.dialog-button.active {
+.dialog-controls>.dialog-button:hover { background-position-y: -48px; }
+.dialog-controls>.dialog-button:active,
+.dialog-controls>.dialog-button.active {
     background-position-y: -96px;
 }
-.chapter-form.json-mode #dialog-controls>#action-json-view.dialog-button {
+.dialog-chapter.json-mode .dialog-controls>#action-json-view.dialog-button {
     background-position-y: -96px;
 }
-.chapter-form.form-mode #dialog-controls>#action-form-view.dialog-button {
+.dialog-chapter.form-mode .dialog-controls>#action-form-view.dialog-button {
     background-position-y: -96px;
 }
-#dialog-controls.disabled>.dialog-button, #dialog-controls>.dialog-button.disabled { background-position-y: -144px !important; }
+.dialog-controls.disabled>.dialog-button, .dialog-controls>.dialog-button.disabled { background-position-y: -144px !important; }
 
 /* END: buttons */
 
