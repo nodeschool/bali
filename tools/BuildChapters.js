@@ -28,13 +28,21 @@ var PullJSON = function (file) {
         xhr.send(null);
         return (r = xhr.responseText) ? JSON.parse(r) : null
     },
+    _EXCLUDE_CHAPTERNAMES = [
+        'list',
+    ],
+    PullChapter = function ( chapterName ) {
+        return ( _EXCLUDE_CHAPTERNAMES.indexOf( chapterName ) < 0 )
+            ? Pull.JSON
+            : null
+    },
     PullHeaders = function (file) {
         var xhr = new XMLHttpRequest, r;
         xhr.open('head', file, false);
         xhr.send(null);
         return (r = xhr.getAllResponseHeaders()) ? r : null
     },
-    _FIELDS = {
+    _FIELDS_REQUIRE = {
         "name": true,
         "location": true,
         "country": true,
@@ -45,23 +53,39 @@ var PullJSON = function (file) {
         "facebook": false,
         "repo": true
     },
+    _FIELDS_VALID = {
+        "name":     [/^[\w\-]+$/,       'alpha numerics and punctuation'],
+        "location": [/^[\w\-\.\x20']+$/,'alpha numerics and punctuation'],
+        "country":  [/^[A-Z]$/,         '2 uppercase letters'],
+        "region":   [/^[\w\-\.\x20']+$/,'alpha numerics and punctuation'],
+        "organizers":[/^[\w\-]+$/,      'comma seperated alpha numerics'],
+        "website":  [/^http:\/\//,       'web address'],
+        "twitter":  [/^[\w\-]+$/,       'alpha numerics and punctuation'],
+        "facebook": [/^[\w\-]+$/,       'alpha numerics and punctuation'],
+        "repo":     [/^http:\/\//,       'web address']
+    },
     OPT_STAT    = 'nothing',
     OPT_UPDATE  = 'update',
     OPT_REVERT  = 'revert',
     OPT_REMOVE  = 'remove',
     _MAXCLONEDEPTH = 6,
     _cloneObject = function ( o, depth ) {
-        var d = {},
-            k, i;
+        var d, k, i;
         if ( (depth || (depth = 1)) > _MAXCLONEDEPTH ) {
             throw 'depth overflow at ' + depth;
             return null
         }
-        for ( k in o ) {
-            d[k] = ( (i = o[k]) instanceof Object && ! (i instanceof EventTarget) )
-                    ? _cloneObject( i, depth + 1 )
-                    : i;
-        }
+        if ( o instanceof Array ) {
+            d = o.slice( )
+        } else if ( o instanceof Object ) {
+            d = {};
+            for ( k in o ) {
+                d[k] = ( (i = o[k]) instanceof Object && ! (i instanceof EventTarget) )
+                        ? _cloneObject( i, depth + 1 )
+                        : i;
+            }
+        } else
+            d = o;
         return d
     },
     _extractHeader = function ( allHeaders, headerName ) {
@@ -211,8 +235,8 @@ var PullJSON = function (file) {
             k;
         if ( ! (dest instanceof Object) )
             dest = {};
-        for ( k in _FIELDS ) {
-            if ( _FIELDS[k] && ( ! o[k] || ! o[k].length ) ) {
+        for ( k in _FIELDS_REQUIRE ) {
+            if ( _FIELDS_REQUIRE[k] && ( ! o[k] || ! o[k].length ) ) {
                 errcount++;
                 errors[k] = k + ' required';
             }
@@ -225,7 +249,7 @@ var PullJSON = function (file) {
         return errcount ? errors : null
     },
     _getChapterIndexFromRegionByName = function ( name ) {
-        var i = this.length;
+        var i = this.chapters.length;
         name = name.toLowerCase();
         while ( i-- )
             if ( this.chapters[i].name.toLowerCase() === name )
@@ -313,28 +337,31 @@ var PullJSON = function (file) {
         return chapter
     },
     // this = new chapters object
-    _createBuildListOptions = function ( list, options, reverse ) {
-        var chapterList = _getChapters.call( list ),
-            newChapters = (this instanceof Window) ? {} : this,
-            ld = new Date( list['last-modified'] || null ),
+    _createBuildListOptions = function ( lastModified, newChapters, options, reverse ) {
+        var list = this,
+            chapterList = _getChapters.call( list ),
+            names = Object.keys( chapterList ),
             nd = Date.now(),
-            c, o, cn, cd;
+            c, o, ci, cn, cd;
         newChapters || (newChapters = {});
         options || (options = {});
+        for ( cn in newChapters )
+            if ( names.indexOf( cn ) < 0 )
+                names.push( cn );
         if ( reverse ) {
-            for ( cn in chapterList ) {
+            for ( ci = 0; (cn = names[ci]); ci++ ) {
                 if ( ! (o = options[cn]) ) {
-                    c = chapterList[cn];
-                    cd = new Date( c['last-modified'] || nd );
-                    options[cn] = ( ld > cd ) ? OPT_REVERT : OPT_STAT;
+                    c = newChapters[cn];
+                    cd = new Date( (c && c['last-modified']) || nd );
+                    options[cn] = ( lastModified > cd ) ? OPT_REVERT : OPT_STAT;
                 }
             }
         } else {
-            for ( cn in chapterList ) {
+            for ( ci = 0; (cn = names[ci]); ci++ ) {
                 if ( ! (o = options[cn]) ) {
-                    c = chapterList[cn];
-                    cd = new Date( c['last-modified'] || nd );
-                    options[cn] = ( ld < cd ) ? OPT_UPDATE : OPT_STAT;
+                    c = newChapters[cn];
+                    cd = new Date( (c && c['last-modified']) || nd );
+                    options[cn] = ( lastModified < cd ) ? OPT_UPDATE : OPT_STAT;
                 }
             }
         }
@@ -342,73 +369,67 @@ var PullJSON = function (file) {
         return options
     },
     // this = new chapters object
-    _buildList = function ( list, options, dest ) {
-        var chapterList = _getChapters.call( list ),
-            newChapters = (this instanceof Window) ? {} : this,
+    _buildList = function ( lastModified, newChapters, options, dest ) {
+        var list = this,
+            chapterList = _getChapters.call( list ),
             ld = new Date( list['last-modified'] || 0 ),
-            nd = Date.now(),
+            nd = new Date( Date.now() ),
             ct = 0,
-            rl, c, ci, r, nc, o, cn, cd, m;
+            rl, c, ci, r, oc, nc, o, cn, cd, m;
         if ( ! options )
-            options = _createBuildListOptions.call( list, {} )
-        dest || (dest = { "total": 0 });
+            options = _createBuildListOptions.call( list, lastModified, newChapters, options )
+        dest || (dest = { });
         dest.total = 0;
-        dest["last-modified"] || (dest["last-modified"] = nd.toUTCString());
+//        dest["last-modified"] || (dest["last-modified"] = nd.toUTCString());
         rl = dest.regions || (dest.regions = []);
-        for ( cn in chapterList ) {
-            c = chapterList[cn];
+        for ( cn in options ) {
+            oc = chapterList[cn];
             nc = newChapters[cn];
             switch ( m = options[cn] ) {
                 case OPT_STAT:
-                    if ( ! nc ) {
-                        alert( ['cannot update "', cn, '" because it doesn\'t exist'].join('') );
-                        return null
+                    if ( ! (c = oc || nc).region ) {
+                        alert( ['cannot update "', c.name, '" because it has no region'].join('') );
+                        continue
                     }
-                    if ( ! nc.region ) {
-                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
-                        return null
-                    }
-                    if ( ! (r = _getRegionByName.call( list, nc.region )) )
-                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
-                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
-                        r.count = r.chapters.push( _cloneObject( nc ) );
+                    if ( ! (r = _getRegionByName.call( dest, c.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": c.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, c.name)) < 0 ) {
+                        r.count = r.chapters.push( _cloneObject( c ) );
                     } else {
-                        r.chapters[ci] = _cloneObject( nc );
+                        r.chapters[ci] = _cloneObject( c );
+                        r.count = r.chapters.length;
                     }
                     ct++;
                     break;
                     
                 case OPT_UPDATE:
-                    if ( ! nc ) {
-                        alert( ['cannot update "', cn, '" because it doesn\'t exist'].join('') );
-                        return null
+                    if ( ! (c = oc || nc).region ) {
+                        alert( ['cannot update "', c.name, '" because it has no region'].join('') );
+                        continue
                     }
-                    if ( ! nc.region ) {
-                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
-                        return null
-                    }
-                    if ( ! (r = _getRegionByName.call( dest, nc.region )) )
-                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
-                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
-                        r.count = r.chapters.push( _cloneObject( nc ) );
+                    if ( ! (r = _getRegionByName.call( dest, c.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": c.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, c.name)) < 0 ) {
+                        r.count = r.chapters.push( _cloneObject( c ) );
                     } else {
-                        r.chapters[ci] = _cloneObject( nc );
+                        r.chapters[ci] = _cloneObject( c );
+                        r.count = r.chapters.length;
                     }
                     ct++;
                     break;
                     
                 case OPT_REVERT:
-                    if ( ! nc.region ) {
-                        alert( ['cannot update "', cn, '" because it has no region'].join('') );
-                        return null
+                    if ( ! (c = oc || nc).region ) {
+                        alert( ['cannot update "', c.name, '" because it has no region'].join('') );
+                        continue
                     }
-                    newChapters[cn] = c;
-                    if ( ! (r = _getRegionByName.call( dest, nc.region )) )
-                        r = (dest.regions[dest.regions.length] = {"region": nc.region,"count": 0,"chapters":[]});
-                    if ( (ci = _getChapterIndexFromRegionByName.call(r, nc.name)) < 0 ) {
+                    if ( ! (r = _getRegionByName.call( dest, c.region )) )
+                        r = (dest.regions[dest.regions.length] = {"region": c.region,"count": 0,"chapters":[]});
+                    if ( (ci = _getChapterIndexFromRegionByName.call(r, c.name)) < 0 ) {
                         r.count = r.chapters.push( _cloneObject( c ) );
                     } else {
                         r.chapters[ci] = _cloneObject( c );
+                        r.count = r.chapters.length;
                     }
                     ct++;
                     break;
@@ -425,16 +446,18 @@ var PullJSON = function (file) {
         return dest
     };
 
-return Object.defineProperties( {}, {
+module.exports = Object.defineProperties( {}, {
     PullJSON: { value: PullJSON },
     PullHeaders: { value: PullHeaders },
-    RegionFields: { value: Object.keys( _FIELDS ) },
+    RegionFields: { value: Object.keys( _FIELDS_REQUIRE ) },
+    ExcludeJSONs: { value: _EXCLUDE_CHAPTERNAMES },
     OptionTypes: { value: Object.freeze( {
         OPT_STAT:   OPT_STAT,
         OPT_UPDATE: OPT_UPDATE,
         OPT_REVERT: OPT_REVERT,
         OPT_REMOVE: OPT_REMOVE
     } ) },
+    cloneObject: { value: _cloneObject },
     extractHeader: { value: _extractHeader },
     getChapters: { value: _getChapters },
     getStatistics: { value: _getStatistics },

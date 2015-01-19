@@ -38,30 +38,86 @@ function require (file) {
     xhr.send(null);
     return (r = xhr.responseText) ? (new Function ( 'module', ['var exports = module.exports;', r, '; return module.exports'].join('') ))(module) : null
 }
-window.addEventListener( 'load', function () {
-    if ( ! (self.BuildChapters = require( 'BuildChapters.js' )) ) {
-        return alert( 'failure to load libraries, maybe the internet is down' );
-    }
-    var _FILEPREFIX = '/chapters/',
+if ( ! (self.BuildChapters = require( 'BuildChapters.js' ))
+        || ! (self.Cookie = require( 'cookie.js' ))
+        || ! (self.FixInputList =  require( 'fixInputList.js' )) ) {
+    alert( 'failure to load libraries, maybe the internet is down' );
+} else window.addEventListener( 'load', function () {
+    var _CHAPTERSPREFIX = 'CHAPTERS-PREFIX',
+        _FILEPREFIX = Cookie.item( _CHAPTERSPREFIX ) || '', 
         _CONTROLS = {
             "new-chapter": { index: 0, action: function () {
-                _chapterForm( function ( newChapter ) {
-                    
+                _editChapterDialog( function ( chapter ) {
+                    if ( chapter.name )
+                        _ChapterCache[chapter.name] = chapter;
+                    _setWorkingChapter( chapter );
                 }, _WorkingChapter = { name: 'new chapter' } );
             } },
-            "load-json": { index: 3, action: function ( ) {} },
+            "load-chapter": { index: 1, action: function ( ) {
+                _loadChapterDialog( function ( fileName ) {
+                    var chapterPath = '',
+                        chapter, elt;
+                    try {
+                        if ( fileName
+                                && (chapter = BuildChapters.PullJSON(chapterPath = _FILEPREFIX + fileName))
+                                && chapter.name ) {
+                            _ChapterCache[chapter.name] = chapter;
+                            if ( (elt = workingChapterList.querySelector( ['[value="', chapter.name, '"]'].join('') )) )
+                                workingChapterList.removeChild( elt );
+                            (elt = document.createElement( 'option' )).value = chapter.name;
+                            elt.textContent = chapter.name;
+                            workingChapterList.insertBefore( elt, workingChapterList.firstElementChild );
+                            _setWorkingChapter( chapter );
+                        } else {
+                            alert( ['No such file "', fileName, '" at "', chapterPath, '"'].join('') )
+                        }
+                    } catch ( e ) {
+                        alert( ['File "', fileName, '" at "', chapterPath, '" is not valid'].join('') )
+                    }
+                }, 'Load Chapter File', 'load' );
+            } },
             "edit-chapter": { index: 1, action: function ( ) {
-                _chapterForm( function ( newChapter ) {
-                    
+                _editChapterDialog( function ( chapter ) {
+                    if ( chapter.name )
+                        _ChapterCache[chapter.name] = chapter;
+                    _setWorkingChapter( chapter );
                 }, _WorkingChapter );
             } },
-            "drop-chapter": { index: 2, action: function ( ) {} },
-            "save-json": { index: 4, action: function ( ) {} },
-            "check-json": { index: 5, action: function ( ) {} },
-            "build-list": { index: 6, action: function ( ) {} },
-            "search-json": { index: 7, action: function ( ) {} },
-            "view-json": { index: 8, action: function ( ) {} },
-            "go-repo": { index: 9, action: function ( ) {} },
+            "drop-chapter": { index: 2, action: function ( ) {
+                _chooseChaptersDialog( function ( list ) {
+                    var k, elt;
+                    for ( k in list ) {
+                        if ( _ChapterCache[k] ) {
+                            if ( _ChapterCache[k] === _WorkingChapter )
+                                _setWorkingChapter( null );
+                            if ( (elt = workingChapterList.querySelector( '[value="' + k + '"]' ) ) )
+                                workingChapterList.removeChild( elt );
+                            delete _ChapterCache[k];
+                        }
+                    }
+                }, _WorkingChapter, 'Remove Chapters', 'Remove Selected' );
+            } },
+//            "save-json": { index: 4, action: function ( ) {} },
+            "check-list": { index: 5, action: function ( ) {
+                var l = BuildChapters.buildList.call( list, listLastModified, _ChapterCache ),
+                    statistics = BuildChapters.getStatistics.call( l );
+                _printClear();
+                _printStatistics( statistics, 'checking result for chapters list' );
+                _println( o, JSON.stringify( l, null, 2 ) );
+            } },
+            "build-list": { index: 3, action: function ( ) {
+                var currList = list,
+                    currStat = listStatus.innerHTML,
+                    itemStat = {};
+                list = BuildChapters.buildList.call( list, listLastModified, _ChapterCache )
+                _printClear();
+                _checkList();
+            } },
+//            "search-json": { index: 4, action: function ( ) {} },
+//            "view-json": { index: 8, action: function ( ) {} },
+            "go-repo": { index: 5, action: function ( ) {
+                window.open( 'https://github.com/nodeschool/nodeschool.github.io', '_blank' );
+            } },
         },
         _WorkingChapter = {},
         _ChapterCache = {},
@@ -72,26 +128,38 @@ window.addEventListener( 'load', function () {
         listStatus = header.querySelector( '#list-status' ),
         controls = header.querySelector( '#controls' ),
         scrollButton = main.querySelector( '#code-position' ),
-        workingChapterName = header.querySelector( '#working-chapter-name' ),
+        cachedChapterNames = header.querySelector( '#cached-chapter-names' ),
+        workingChapterName = cachedChapterNames.querySelector( '#working-chapter-name' ),
+        workingChapterList = cachedChapterNames.querySelector( '#working-chapter-list' ),
         _resize = function ( ) {
             var h = window.innerHeight,
                 hh = header.clientHeight;
             main.style.height = (h - hh) + 'px';
         },
-        _requireWorkingChapterSelectors = '#action-edit-chapter,#action-drop-chapter,#action-save-json,#action-check-json',
-        _setWorkingChapter = function ( chapter ) {
+        _askRepoURL = function ( callback ) {
+            _repoDialog( function ( url ) { if ( url ) Cookie.item( _CHAPTERSPREFIX, _FILEPREFIX = url ); callback() }, _FILEPREFIX );
+        },
+        _requireWorkingChapterSelectors = '#action-edit-chapter',
+        _setWorkingChapter = function ( chapter, select ) {
+            var l;
             workingChapterName.classList.remove( 'warning' );
             if ( (_WorkingChapter = chapter) ) {
                 [].forEach.call( controls.querySelectorAll( _requireWorkingChapterSelectors ), function ( el ) { el.classList.remove( 'disabled' )} );
-                if ( chapter.name )
-                    workingChapterName.textContent = chapter.name
-                else {
-                    workingChapterName.textContent = 'unname'
-                    workingChapterName.classList.add( 'warning' );
+                if ( chapter.name ) {
+                    if ( ! _ChapterCache[chapter.name] )
+                        _ChapterCache[workingChapterList.appendChild( l = document.createElement( 'option' ) ).value = l.textContent = chapter.name] = chapter;
+                    if ( select != false )
+                        workingChapterName.value = chapter.name
+                } else {
+                    if ( select != false ) {
+                        workingChapterName.value = 'unnamed';
+                        workingChapterName.classList.add( 'warning' );
+                    }
                 }
             } else {
                 [].forEach.call( controls.querySelectorAll( _requireWorkingChapterSelectors ), function ( el ) { el.classList.add( 'disabled' )} );
-                workingChapterName.textContent = ''
+                if ( select != false )
+                    workingChapterName.value = ''
             }
             return chapter
         },
@@ -138,9 +206,9 @@ window.addEventListener( 'load', function () {
             if ( ab )
                 _printScroll()
         },
-        _printStatistics = function ( statistics ) {
+        _printStatistics = function ( statistics, titleText ) {
             var t = document.createElement( 'h2' );
-            t.textContent = "chapters list\n";
+            t.textContent = titleText || "chapters list";
             _println( t );
             (h = document.createElement( 'b' )).textContent = 'messages[' + statistics.messages.length + ']:';
             if ( statistics.messages.length ) {
@@ -156,6 +224,7 @@ window.addEventListener( 'load', function () {
         },
         _setListStatus = function ( listHeader, chapterList, regionList, countryList, organizerList ) {
             var row;
+            listStatus.textContent = '';
             (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total chapters: ' + Object.keys(chapterList).length;
             (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total regions: ' + Object.keys(regionList).length;
             (row = listStatus.appendChild( document.createElement( 'div' ) )).textContent = 'total countries: ' + Object.keys(chapterList).length;
@@ -165,11 +234,15 @@ window.addEventListener( 'load', function () {
         _closeDialog = function ( container ) {
             container.parentElement.removeChild( container ); 
             controls.classList.remove( 'disabled' ); 
+            cachedChapterNames.classList.remove( 'disabled' );
+            workingChapterName.disabled = false;
             _DialogIsOpen = false;
         },
         _openDialog = function ( container, className ) {
             _DialogIsOpen = true;
-            controls.classList.add( 'disabled' ); 
+            controls.classList.add( 'disabled' );
+            cachedChapterNames.classList.add( 'disabled' );
+            workingChapterName.disabled = true;
             document.body.appendChild( container ).className = 'dialog-popup';
             if ( className ) {
                 className.split( /\s+/ ).forEach( function ( cn ) {
@@ -180,13 +253,155 @@ window.addEventListener( 'load', function () {
             container.style.top = ((window.innerHeight - container.clientHeight) / 2.2) + 'px';
             return container
         },
-        _chapterForm = function ( callback, json, title ) {
+        _repoDialog = function ( callback, oldfileprefix, title ) {
+            var container = document.createElement( 'div' ),
+                head = container.appendChild( document.createElement( 'div' ) ),
+                body = container.appendChild( document.createElement( 'div' ) ),
+                foot = container.appendChild( document.createElement( 'div' ) ),
+                content = body.appendChild( document.createElement( 'div' ) ),
+                repo, error, h, k, r;
+            
+            oldfileprefix || (oldfileprefix = _FILEPREFIX || '/chapters/');
+            
+            // setup bidy
+            body.className='dialog-body';
+            (repo = (r = content.appendChild( document.createElement( 'div' ) )).appendChild( document.createElement( 'input' ) )).value = oldfileprefix;
+            r.className = 'dialog-row';
+            error = content.appendChild( document.createElement( 'div' ) ),
+            error.className = 'dialog-row';
+            
+            
+            // setup header
+            head.className = 'dialog-head';
+            head.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Select repo Chapters folder';
+            
+            // setup footer
+            foot.className = 'dialog-foot';
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'OK';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () {
+                if ( ! (repo.value = repo.value.trim()) ) {
+                    repo.value = oldfileprefix;
+                    error.textContent = 'you must specify a valid repo with a chapters folder';
+                    return
+                }
+                if ( ! (h = BuildChapters.PullHeaders( repo.value )) ) {
+                    error.textContent = h;
+//                    error.textContent = 'you must specify a valid repo with a chapters folder';
+                    return
+                }
+                error.textContent = '';
+                (callback instanceof Function) && callback.call( container, repo.value );
+                _closeDialog( container )
+            }, false );
+            
+            return _openDialog( container, 'dialog-repo' )
+        },
+        _loadChapterDialog = function ( callback, title, actionLabel ) {
+            var container = document.createElement( 'div' ),
+                head = container.appendChild( document.createElement( 'div' ) ),
+                body = container.appendChild( document.createElement( 'div' ) ),
+                foot = container.appendChild( document.createElement( 'div' ) ),
+                content = body.appendChild( document.createElement( 'div' ) ),
+                count = 0,
+                row, selected, h, k;
+            
+            // setup body
+            body.className ='dialog-body';
+            content.className ='dialog-body-content';
+            content.appendChild( row = document.createElement( 'div' ) ).className = 'dialog-form-row';
+            row.appendChild( document.createElement( 'label' ) ).textContent = 'chapter file'; 
+            row.appendChild( input = document.createElement( 'input' ) );
+            input.setAttribute( 'type', 'text' );
+            input.setAttribute( 'placeholder', 'file.json' );
+//            input.setAttribute( 'list', workingChapterList.id );
+//            FixInputList( input );
+            row.appendChild( document.createElement( 'status' ) );
+            
+            // setup header
+            head.className = 'dialog-head';
+            head.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Select Chapter File';
+            
+            // setup footer
+            foot.className = 'dialog-foot';
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = actionLabel || 'OK';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () {
+                (callback instanceof Function) && callback.call( container, input.value );
+                _closeDialog( container )
+            }, false );
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () {
+                _closeDialog( container )
+            }, false );
+            
+            return _openDialog( container, 'dialog-choose' )
+        },
+        _chooseChaptersDialog = function ( callback, json, title, actionLabel ) {
+            var container = document.createElement( 'div' ),
+                head = container.appendChild( document.createElement( 'div' ) ),
+                body = container.appendChild( document.createElement( 'div' ) ),
+                foot = container.appendChild( document.createElement( 'div' ) ),
+                content = body.appendChild( document.createElement( 'div' ) ),
+                count = 0,
+                row, selected, h, k;
+            
+            // setup body
+            body.className ='dialog-body';
+            content.className ='dialog-body-content';
+            for ( k in _ChapterCache ) {
+                content.appendChild( row = document.createElement( 'div' ) ).className = 'dialog-row';
+                row.appendChild( h = document.createElement( 'input' ) ).type='checkbox';
+                h.value = k;
+                if ( h.checked = ( _ChapterCache[k] === _WorkingChapter ) )
+                    count++;
+                h.addEventListener( 'change', function () {
+                    if ( this.checked )
+                        count++;
+                    else
+                        count--;
+                    selected.textContent = count + ' chapters selected';
+                }, false );
+                row.appendChild( h = document.createElement( 'label' ) ).textContent = k;
+                h.setAttribute( 'for', 'chapter-' + k );
+            }
+            body.appendChild( selected = document.createElement( 'div' ) ).id = 'chapters-selected';
+            selected.textContent = count + ' chapters selected';
+            
+            // setup header
+            head.className = 'dialog-head';
+            head.appendChild( document.createElement( 'h1' ) ).textContent = title || 'Choose chapters';
+            
+            // setup footer
+            foot.className = 'dialog-foot';
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = actionLabel || 'OK';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () {
+                var items = {};
+                [].forEach.call( content.querySelectorAll( 'input[type=checkbox]' ), function (elt) {
+                    if ( elt.checked )
+                        items[elt.value] = _ChapterCache[elt.value]
+                } );
+                (callback instanceof Function) && callback.call( container, items );
+                _closeDialog( container )
+            }, false );
+            (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
+            k.setAttribute( 'type', 'button' );
+            k.addEventListener( 'click', function () {
+                _closeDialog( container )
+            }, false );
+            
+            return _openDialog( container, 'dialog-choose' )
+        },
+        _editChapterDialog = function ( callback, json, title ) {
             var container = document.createElement( 'div' ),
                 head = container.appendChild( document.createElement( 'div' ) ),
                 body = container.appendChild( document.createElement( 'div' ) ),
                 foot = container.appendChild( document.createElement( 'div' ) ),
                 formView = body.appendChild( document.createElement( 'div' ) ),
                 jsonView = body.appendChild( document.createElement( 'div' ) ),
+                changedJSON = BuildChapters.cloneObject( json ),
                 populateForm = function ( json ) {
                     var data, errors, k, i;
                     BuildChapters.RegionFields.forEach( function ( k ) {
@@ -194,18 +409,18 @@ window.addEventListener( 'load', function () {
                                 ? i.join( ', ' )
                                 : i || '';
                     } );
-                    validateForm()
+                    changedJSON = validateForm( )
                 },
                 populateJSON = function ( json ) {
-                    jsonText.value = JSON.stringify( json, null, 2 );
-                    validateJSON();
+                    jsonText.value = JSON.stringify( changedJSON = json, null, 2 );
+                    changedJSON = validateJSON( );
                 },
-                validateForm = function () {
-                    var json = {},
-                        data = {},
+                validateForm = function ( json ) {
+                    var data = {},
                         errors;
+                    json || (json = {});
                     BuildChapters.RegionFields.forEach( function ( k ) {
-                        data[k] = formView.querySelector( '#chapter-form-' + k + ' input' ).value;
+                        data[k] = formView.querySelector( '#chapter-form-' + k + ' input' ).value || '';
                     } );
                     data.organizers = data.organizers.trim().split( /\s*,\s*/ );
                     if ( (errors = BuildChapters.createChapter( data, json )) ) {
@@ -214,27 +429,22 @@ window.addEventListener( 'load', function () {
                                     ? errors[k]
                                     : ''
                         } );
-                        return false;
+                        return false
                     }
                     BuildChapters.RegionFields.forEach( function ( k ) {
                         formView.querySelector( '#chapter-form-' + k + ' status' ).textContent = ''
                     } );
                     return json
                 },
-                validateJSON = function () {
-                    var json = {},
-                        data, errors, k;
-                    try {
-                        data = JSON.parse( jsonText.value );
-                    } catch (e) {
-                        jsonStatus.textContent = 'bad json syntax';
-                        return false
-                    }
+                validateJSON = function ( json ) {
+                    var data = JSON.parse( jsonText.value ),
+                        errors, k;
+                    json || (json = {});
+                    jsonStatus.textContent = '';
                     if ( (errors = BuildChapters.createChapter( data, json )) ) {
-                        jsonStatus.textContent = '';
                         for ( k in errors )
                             jsonStatus.appendChild( document.createElement( 'div' ) ).textContent = errors[k];
-                        return false;
+                        return false
                     }
                     return json
                 },
@@ -253,6 +463,11 @@ window.addEventListener( 'load', function () {
                 row.appendChild( input = document.createElement( 'input' ) );
                 input.setAttribute( 'type', 'text' );
                 row.appendChild( document.createElement( 'status' ) );
+                input.addEventListener( 'change', function ( ) {
+                    var json;
+                    validateForm( json = {} );
+                    populateForm( json )
+                } );
             } );
             populateForm( json );
             
@@ -274,11 +489,14 @@ window.addEventListener( 'load', function () {
                 var json;
                 if ( container.classList.contains( 'form-mode' ) )
                     return;
-                if ( ! (json = validateJSON()) ) {
+                try {
+                    validateJSON( json = {} );
+                    populateForm( json )
+                } catch (e) {
+                    jsonStatus.textContent = 'bad json syntax';
                     if ( ! confirm( 'you will loose your changes, continue?' ) )
                         return;
-                } else
-                    populateForm( json );
+                }
                 container.classList.remove( 'json-mode' )
                 container.classList.add( 'form-mode' )
             } );
@@ -291,14 +509,19 @@ window.addEventListener( 'load', function () {
                     json, errors, k;
                 if ( container.classList.contains( 'json-mode' ) )
                     return;
-                if ( ! (json = validateForm()) ) {
-                    if ( ! confirm( 'you will loose your changes, continue?' ) )
-                        return;
-                    container.classList.add( 'json-mode' )
-                } else
-                    populateJSON( json );
+                validateForm( json = {} );
+                populateJSON( json );
                 container.classList.add( 'json-mode' )
                 container.classList.remove( 'form-mode' )
+            } );
+            jsonView.addEventListener( 'change', function ( ) {
+                var json;
+                try {
+                    validateJSON( json = {} );
+                    populateJSON( json )
+                } catch (e) {
+                    jsonStatus.textContent = 'bad json syntax';
+                }
             } );
             
             // setup footer
@@ -306,7 +529,7 @@ window.addEventListener( 'load', function () {
             (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'SAVE';
             k.setAttribute( 'type', 'button' );
             k.addEventListener( 'click', function () {
-                (callback instanceof Function) && callback( container, json, title );
+                (callback instanceof Function) && callback.call( container, changedJSON );
                 _closeDialog( container )
             }, false );
             (k = foot.appendChild( document.createElement( 'button' ) )).textContent = 'CANCEL';
@@ -318,7 +541,20 @@ window.addEventListener( 'load', function () {
             _setWorkingChapter( json || (json = {}) );
             return _openDialog( container, 'dialog-chapter form-mode' );
         },
-        list, listHeader, statistics, regionList, chapterList, countryList, organizerList, chapter, t, o;
+        _checkList = function () {
+            statistics = BuildChapters.getStatistics.call( list );
+            _setListStatus( listHeader, statistics.chaptersList, statistics.regionsList, statistics.countriesList, statistics.organizersList );
+            _printStatistics( statistics );
+
+            ( o = document.createElement( 'h2' ) ).textContent = (t = 'list.json');
+            o.title = listHeader;
+            _println( o, JSON.stringify( list, null, 2 ) );
+            
+            Object.keys( statistics.chaptersList ).forEach( function (cn) {
+                _setWorkingChapter( statistics.chaptersList[cn], false );
+            } );
+        },
+        list, listLastModified, listHeader, statistics, regionList, chapterList, countryList, organizerList, chapter, t, o;
     for ( t in _CONTROLS ) {
         (o = document.createElement( 'div' ) ).className = 'header-button';
         o.title = _CONTROLS[t].label || t.replace( /\b[a-z]+\-?/g, function (i) { return i[0].toUpperCase() + i.slice(1) + ' ' } ).replace( /\-/, '' ).trim();
@@ -338,25 +574,38 @@ window.addEventListener( 'load', function () {
         _printScroll( (this.textContent === 'top') ? 0 : null )
     } );
     main.querySelector( '#code-clear' ).addEventListener( 'click', _printClear );
+    workingChapterName.addEventListener( 'change', function ( evt ) {
+        _setWorkingChapter( _ChapterCache[this.value] )
+    }, false );
     _setWorkingChapter();
+    header.querySelector( '#cached-chapter-names button' ).addEventListener( 'click', function ( ) {
+        if ( _WorkingChapter && ! _DialogIsOpen )
+            _editChapterDialog( function ( chapter ) {
+                if ( chapter.name )
+                    _ChapterCache[chapter.name] = chapter
+            }, _WorkingChapter );
+    }, false )
+    FixInputList.createStylesheet();
     _resize();
     window.addEventListener( 'resize', _resize );
-    listHeader = BuildChapters.PullHeaders(t = _FILEPREFIX + 'list.json');
-    list = BuildChapters.PullJSON(t);
-    statistics = BuildChapters.getStatistics.call( list );
-    _setListStatus( listHeader, statistics.chaptersList, statistics.regionsList, statistics.countriesList, statistics.organizersList );
-    _printStatistics( statistics );
-    
-    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'list.json');
-    o.title = listHeader;
-    code.appendChild( document.createTextNode( JSON.stringify( list, null, 2 ) + "\n" ) );
-    
-//    code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
-//    o.title = (BuildChapters.PullHeaders(_FILEPREFIX + t));
-//    code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
-    
+    _askRepoURL( function () {
+        if ( (listHeader = BuildChapters.PullHeaders(t = _FILEPREFIX + 'list.json'))
+                && (list = BuildChapters.PullJSON(t)) ) {
+            listLastModified = BuildChapters.extractHeader( listHeader, 'Last-Modified' );
+            _checkList();
+        } else {
+            list = {
+                total: 0,
+                regions: []
+            }
+        }
+        FixInputList( workingChapterName );
+//        code.appendChild( o = document.createElement( 'h2' ) ).textContent = (t = 'bali.json');
+//        o.title = (BuildChapters.PullHeaders(_FILEPREFIX + t));
+//        code.appendChild( document.createTextNode( JSON.stringify( chapter = BuildChapters.PullJSON(_FILEPREFIX + t), null, 2 ) ) );
+    } );
 } )
         </script>
     </head>
-    <body><main><code></code><button id="code-clear">clear</button><button id="code-position"></button></main><header><h1>Chapter Builder</h1><div id="list-status"></div><div id="working-chapter-name"></div><div id="cached-chapter-names"><input list="single-chapters"><datalist id="single-chapters"></datalist><button>load</button></div><div id="controls"></div></header></body>
+    <body><main><code></code><button id="code-clear">clear</button><button id="code-position"></button></main><header><h1>Chapter Builder</h1><div id="list-status"></div><div id="cached-chapter-names"><div>Chapter:</div><input id="working-chapter-name" list="working-chapter-list"><datalist id="working-chapter-list"></datalist><button>edit</button></div><div id="controls"></div></header></body>
 </html>

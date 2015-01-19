@@ -69,30 +69,31 @@ code {
 }
 h2 { margin-bottom: 4px; }
 
+.dialog-popup #chapters-selected {
+}
 
 #cached-chapter-names {
     position: absolute;
     left: 10px;
-    top: 70px;
+    top: 50px;
     font-weight: bolder;
 }
-#cached-chapter-names input {
-    width: 160px;
+#cached-chapter-names.disabled button {
+    color: lightgray;
+}
+#cached-chapter-names.disabled input {
+    color: lightgray;
 }
 #working-chapter-name {
-    position: absolute;
-    left: 0px;
-    top: 48px;
-    font-weight: bolder;
+    width: 160px;
+    margin-top: 2px;
 }
 #working-chapter-name:empty {
+    
 }
-#working-chapter-name::before {
-    content: 'Chapter: ';
-    margin-left: 10px;
-    font-weight: normal;
+#working-chapter-name.warning {
+    color: darkred;
 }
-
 header #controls {
     position: absolute;
     top: 5px;
@@ -144,13 +145,23 @@ header #list-status {
     position: relative;
 }
 .dialog-body>div {
-    position: absolute;
+    position: relative;
     box-sizing: border-box;
     top: 0px;
     left: 0px;
     width: 100%;
     height: 100%;
+    empty-cells: show;
 }
+.dialog-body>.dialog-body-content {
+    position: relative;
+    height: 280px;
+    overflow: auto;
+}
+.dialog-body .dialog-row {
+    margin: 0 0 5px 0;
+}
+
 .dialog-body textarea {
     resize: none;
 }
@@ -188,6 +199,16 @@ header #list-status {
 
 /* END: popup dialog */
 
+/* popup repo dialog */
+.dialog-repo {
+}
+.dialog-repo .dialog-body {
+    height: 60px;
+}
+
+
+/* END: repo dialog */
+
 /* popup chapter dialog */
 .dialog-chapter {
 }
@@ -223,7 +244,7 @@ header #list-status {
 }
 
 .dialog-chapter .dialog-json-view>textarea {
-    width: 268px;
+    width: 265px;
     margin-left: -5px;
     font-size: 11pt;
 }
@@ -248,9 +269,9 @@ header #list-status {
 #action-new-chapter { background-position: 0px 0px; }
 #action-edit-chapter { background-position: -96px 0px; }
 #action-drop-chapter { background-position: -192px 0px; }
-#action-load-json { background-position: -288px 0px; }
+#action-load-chapter { background-position: -288px 0px; }
 #action-save-json { background-position: -384px 0px; }
-#action-check-json { background-position: -480px 0px; }
+#action-check-list { background-position: -480px 0px; }
 #action-build-list { background-position: -576px 0px; }
 #action-search-json { background-position: -672px 0px; }
 #action-view-json { background-position: -768px 0px; }
@@ -270,20 +291,11 @@ header #list-status {
     cursor: pointer;
 }
 #action-form-view { background-position: 0px 0px; }
+#action-form-view:hover { background-position: 0px -48px; }
+#action-form-view:active, .dialog-chapter.form-mode #action-form-view { background-position: 0px -96px; }
 #action-json-view { background-position: -48px 0px; }
-
-.dialog-controls>.dialog-button:hover { background-position-y: -48px; }
-.dialog-controls>.dialog-button:active,
-.dialog-controls>.dialog-button.active {
-    background-position-y: -96px;
-}
-.dialog-chapter.json-mode .dialog-controls>#action-json-view.dialog-button {
-    background-position-y: -96px;
-}
-.dialog-chapter.form-mode .dialog-controls>#action-form-view.dialog-button {
-    background-position-y: -96px;
-}
-.dialog-controls.disabled>.dialog-button, .dialog-controls>.dialog-button.disabled { background-position-y: -144px !important; }
+#action-json-view:hover { background-position: -48px -48px; }
+#action-json-view:active, .dialog-chapter.json-mode #action-json-view { background-position: -48px -96px; }
 
 /* END: buttons */
 
