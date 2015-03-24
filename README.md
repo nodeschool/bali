@@ -1,13 +1,16 @@
 # bali
+
+[![Join the chat at https://gitter.im/nodeschool/bali](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nodeschool/bali?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Bali, Indonesia Chapter for nodeschool
 
-Next event is April 4th at Hubud in Ubud, Bali.  Time to be announced this week, please check back or subscribe.
+The next event will take place on Sunday, April 5th. It will be held at the Living Food Lab area of Hubud from 2pm - 6pm.
 
 3 forty minute installments including:
 + Introduction to NodeJS;
 + Resources and development using Node;
 + About nodeschool and what it has to offer;
-+ Networking session and short presentations of some local nodeJS projects
++ Networking session and short presentations of some local nodeJS projects.
 
 Venue:
 Hubud
