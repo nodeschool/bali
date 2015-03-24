@@ -1,4 +1,6 @@
 # bali
+
+[![Join the chat at https://gitter.im/nodeschool/bali](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nodeschool/bali?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Bali, Indonesia Chapter for nodeschool
 
 Next event is April 4th at Hubud in Ubud, Bali.  Time to be announced this week, please check back or subscribe.
