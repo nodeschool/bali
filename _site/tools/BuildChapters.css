@@ -1,0 +1,329 @@
+/*
+The MIT License
+
+Copyright 2015 Erich.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+/* 
+    Created on : Jan 15, 2015, 10:55:51 AM
+    Author     : Erich
+*/
+
+html, body, root {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none 0px;
+    font-size: 12pt;
+}
+header {
+    position: absolute;
+    width: 100%;
+    height: 96px;
+    background-color: midnightblue;
+    color: lightcyan;
+    box-sizing: border-box;
+    font-family: sans-serif;
+    padding: 5px 10px;
+}
+header h1 {
+    font-size: 24px;
+    margin-top: 5px;
+}
+
+main {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding-top: 96px;
+    font-family: monospace;
+}
+code {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    overflow: scroll;
+    padding: 5px 10px;
+}
+h2 { margin-bottom: 4px; }
+
+.dialog-popup #chapters-selected {
+}
+
+#cached-chapter-names {
+    position: absolute;
+    left: 10px;
+    top: 50px;
+    font-weight: bolder;
+}
+#cached-chapter-names.disabled button {
+    color: lightgray;
+}
+#cached-chapter-names.disabled input {
+    color: lightgray;
+}
+#working-chapter-name {
+    width: 160px;
+    margin-top: 2px;
+}
+#working-chapter-name:empty {
+    
+}
+#working-chapter-name.warning {
+    color: darkred;
+}
+header #controls {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
+header #list-status {
+    position: absolute;
+    left: 270px;
+    top: 10px;
+    font-size: 11pt;
+}
+
+/* popup dialog */
+.dialog-popup {
+    position: absolute;
+    z-index: 10;
+    background-color: khaki;
+    box-sizing: border-box;
+    text-align: center;
+    width: 480px;
+    padding: 10px;
+    border-radius: 12px;
+    border: solid 1px tan;
+    font-family: sans-serif;
+}
+
+.dialog-popup .dialog-head {
+    height: 48px;
+}
+.dialog-head h1 {
+    box-sizing: border-box;
+    font-size: 24pt;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+.dialog-head .dialog-controls {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.dialog-popup .dialog-body {
+    position: relative;
+}
+.dialog-body>div {
+    position: relative;
+    box-sizing: border-box;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    empty-cells: show;
+}
+.dialog-body>.dialog-body-content {
+    position: relative;
+    height: 280px;
+    overflow: auto;
+}
+.dialog-body .dialog-row {
+    margin: 0 0 5px 0;
+}
+
+.dialog-body textarea {
+    resize: none;
+}
+.dialog-body .dialog-form-view {
+    
+}
+.dialog-form-view>.dialog-form-row {
+    margin: 0 0 5px 0;
+}
+.dialog-body .dialog-json-view {
+    
+}
+.dialog-json-view>textarea,
+.dialog-json-view>status {
+    display: inline-block;
+    box-sizing: border-box;
+    height: 100%;
+    text-align: left;
+    vertical-align: top;
+}
+.dialog-json-view>textarea {
+}
+.dialog-json-view>status {
+}
+
+.dialog-popup .dialog-foot {
+    margin-top: 10px;
+}
+.dialog-foot button {
+    min-width: 96px;
+    height: 48px;
+    margin: 0 10px;
+}
+
+
+/* END: popup dialog */
+
+/* popup repo dialog */
+.dialog-repo {
+}
+.dialog-repo .dialog-body {
+    height: 60px;
+}
+
+
+/* END: repo dialog */
+
+/* popup chapter dialog */
+.dialog-chapter {
+}
+.dialog-chapter .dialog-body {
+    height: 240px;
+}
+
+.dialog-chapter .dialog-form-view,
+.dialog-chapter .dialog-json-view {
+    display: none;
+}
+.dialog-chapter.form-mode .dialog-form-view {
+    display: block;
+}
+.dialog-chapter.json-mode .dialog-json-view {
+    display: block;
+}
+
+.dialog-chapter .dialog-form-row>label {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    margin-right: 5px;
+}
+.dialog-chapter .dialog-form-row>input[type=text] {
+    width: 180px;
+    margin-right: 5px;
+}
+.dialog-chapter .dialog-form-row>status {
+    display: inline-block;
+    width: 180px;
+    text-align: left;
+}
+
+.dialog-chapter .dialog-json-view>textarea {
+    width: 265px;
+    margin-left: -5px;
+    font-size: 11pt;
+}
+.dialog-chapter .dialog-json-view>status {
+    width: 180px;
+    padding-left: 5px;
+}
+
+/* END: popup chapter dialog */
+
+
+/* buttons */
+.header-button {
+    display: inline-block;
+    margin: -4px -2px 0;
+    width: 84px;
+    height: 96px;
+    background-image: url(buttonsheet.png);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#action-new-chapter { background-position: 0px 0px; }
+#action-edit-chapter { background-position: -96px 0px; }
+#action-drop-chapter { background-position: -192px 0px; }
+#action-load-chapter { background-position: -288px 0px; }
+#action-save-json { background-position: -384px 0px; }
+#action-check-list { background-position: -480px 0px; }
+#action-build-list { background-position: -576px 0px; }
+#action-search-json { background-position: -672px 0px; }
+#action-view-json { background-position: -768px 0px; }
+#action-go-repo { background-position: -864px 0px; }
+
+#controls>.header-button:hover { background-position-y: -96px; }
+#controls>.header-button:active,#controls>.header-button.active { background-position-y: -192px; }
+#controls.disabled>.header-button, #controls>.header-button.disabled { background-position-y: -288px !important; }
+
+.dialog-button {
+    display: inline-block;
+    margin: 0px 0 0;
+    width: 44px;
+    height: 48px;
+    background-image: url(dialogbuttonsheet.png);
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+#action-form-view { background-position: 0px 0px; }
+#action-form-view:hover { background-position: 0px -48px; }
+#action-form-view:active, .dialog-chapter.form-mode #action-form-view { background-position: 0px -96px; }
+#action-json-view { background-position: -48px 0px; }
+#action-json-view:hover { background-position: -48px -48px; }
+#action-json-view:active, .dialog-chapter.json-mode #action-json-view { background-position: -48px -96px; }
+
+/* END: buttons */
+
+#code-clear, #code-position {
+    position: absolute;
+    top: 100px;
+    width: 80px;
+    height: 48px;
+    line-height: 14pt;
+    opacity: 0.4;
+    font-size: 14pt;
+    color: darkgray;
+    transition: 500ms opacity,color;
+    -webkit-transition: 500ms opacity,color;
+    -moz-transition: 500ms opacity,color;
+    -o-transition: 500ms opacity,color;
+    -ms-transition: 500ms opacity,color;
+}
+#code-clear:hover, #code-position:hover {
+    opacity: 1.0;
+    color: black;
+}
+#code-clear {
+    right: 112px;
+}
+#code-position {
+    right: 24px;
+}
+#code-position:empty {
+    display: none;
+}

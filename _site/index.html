@@ -1,0 +1,145 @@
+<!doctype html>
+<head>
+
+  <meta charset="utf-8">
+  <title>nodeschool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+  <script>
+window.addEventListener( 'load', function () {
+    var header = document.querySelector( 'header' ),
+        headerContent = header.querySelector( '#header-content' ),
+        main = document.querySelector( '.site-main-content' ),
+        headerButtons = main.querySelector( '#header-buttons' ),
+        _Resize = function (evt) {
+            var w = headerContent.clientHeight * 2,
+                ww = w * 0.38,
+                wh = headerContent.clientHeight * 0.32;
+            headerContent.style.width = w + 'px';
+            headerContent.style.left = ((window.innerWidth - w) / 2) + 'px';
+            headerButtons.style.width = ww + 'px';
+            headerButtons.style.height = wh + 'px';
+            headerButtons.style.left = ((window.innerWidth - ww) / 2) + 'px';
+            headerButtons.style.top = (header.clientHeight - wh) + 'px';
+            main.style.paddingTop = header.clientHeight + 'px';
+            console.log( evt );
+//            if ( evt instanceof Object ) {
+//                setTimeout( _Resize, 500 );
+//            }
+        };
+    _Resize();
+    window.addEventListener( 'resize', _Resize, false );
+    window.addEventListener( 'fullscreenchange', _Resize, false );
+    window.addEventListener( 'deviceorientation', _Resize, false );
+    
+    
+} )
+  </script>
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/mygumby.css">
+</head>
+
+<body>
+  <!-- START: Site Header -->
+  <header role="banner" class="parallax">
+      <div id="header-content">
+      </div>
+  </header>
+  <!-- /END: Site Header -->
+  <!-- START: Site Footer -->
+  <footer role="contentinfo">
+  </footer>
+  <!-- /END: Site Footer -->
+  <main role="main" class="site-main-content"><div id="main-content">
+    <div id="ticker-message">April 5th, from 2-6pm, at Hubud in Ubud.</div>
+    <div id="header-buttons">
+        <div id='interest-button' onclick="location='http://www.hubud.org/event/nodeschool-bali/'"></div>
+        <div id='schedule-button' onclick="location='https://github.com/nodeschool/bali/issues/1'"></div>
+    </div>
+    <!-- START: Features Section -->
+    <section id="about" class="site-section section-features" data-target="features">
+      <!-- START: Features List -->
+      <ul class="row features-list">
+        <!-- START: Feature Item -->
+        <li class="features-item">
+          <span class="features-circle">
+            <span class="features-circle-icon" onclick="location='https://github.com/nodeschool/bali/issues/1'">
+              <i class="icon-tools"></i>
+            </span>
+          </span>
+          <h3>Learn Coding</h3>
+          <p>Join us and learn coding with us. You are going to learn the basics
+          of Node.js. It's a plus if you know some JavaScript beforehand, but if not 
+          we can help you out.</p>
+        </li>
+        <!-- /END: Feature Item -->
+        <!-- START: Feature Item -->
+        <li class="features-item">
+          <span class="features-circle">
+            <span class="features-circle-icon" onclick="location='https://github.com/nodeschool/bali/issues/1'">
+              <i class="icon-rocket"></i>
+            </span>
+          </span>
+          <h3>Self-Guided</h3>
+          <p>You will go through a set of self-paced challenges. No boring talks.
+             All challenges are Open Source and 
+          available online on <a href="http://nodeschool.io/">nodeschool.io</a>.
+           This means you can continue learning after the event.</p>
+          
+        </li>
+        <!-- /END: Feature Item -->
+        <!-- START: Feature Item -->
+        <li class="features-item">
+          <span class="features-circle">
+            <span class="features-circle-icon" onclick="location='https://github.com/nodeschool/bali/issues/1'">
+              <i class="icon-heart"></i>
+            </span>
+          </span>
+          <h3>For Everyone</h3>
+          <p>We think coding is awesome and everyone should feel welcome at our event. 
+            This includes that we are expecting all participants to be awesome to each other 
+            and respect the <a href="https://github.com/nodeschool/bali/blob/master/codeofconduct.md">Code of Conduct</a>.</p>
+        </li>
+        <!-- /END: Feature Item -->
+      </ul>
+      <!-- /END: Features List -->
+    </section>
+    <!-- /END: Features Section -->
+    <!-- START: Signup Section -->
+    <section id="help" class="site-section section-signup">
+      <div class="row">
+        <div class="twelve columns animate-on-scroll" data-scrollanimation="fadeDownIn">
+          <h3 class="signup-title">Join the Adventure!</h3>
+          <!-- <h4 class="signup-subtitle">Want to attend NodeSchool in Bali? Help plan it or show interest on GitHub.</h4> -->
+          <h4 class="signup-subtitle">April 5th, from 2-6pm, at Hubud in Ubud.</h4>
+          <p><a href="https://www.facebook.com/events/842595932480538/">Visit the Facebook event page</a>.</p>
+        </div>
+      </div>
+      <div class="row">
+        <!-- START: Signup Form Bottom -->
+        <div class="eight columns centered">
+          <div class="signup-form">
+            <!-- <a href="https://ti.to/nodeschool-bali/3" class="btn-side animate-on-scroll" data-scrollanimation="fadeInLeft"><i class="icon-ticket"></i> Sign up!</a> -->
+            <a href="http://www.hubud.org/event/nodeschool-bali/" class="btn-side animate-on-scroll" data-scrollanimation="fadeInLeft"><i class="icon-rocket"></i> RSVP!</a>
+          </div>  
+        </div>
+        <!-- /END: Signup Form Bottom -->
+      </div>
+    </section>
+    <!-- /END: Signup Section -->
+  
+  <section class="site-section">
+    <div class="row">
+      <div class="twelve columns animate-on-scroll" data-scrollanimation="fadeDownIn">
+        <h3>Questions? Feedback? Want to help out?</h3>
+        <h4>Just open an issue on <a href="https://github.com/nodeschool/bali">GitHub</a> and join the discussion.</h4>
+          <p> If you are not on GitHub yet, create a <a href="https://github.com/join">free account</a> and check out the <a href="http://nodeschool.io/#git-it">Git-it</a> workshop. It will
+          help you get started.</p>
+        <p>If you have feedback for the NodeSchool on April 5th and don't want to open an issue, send an email to <a href="mailto:erichhorn78@gmail.com">Eric</a> or <a href="mailto:richard.littauer@gmail.com">Richard</a>.</p>
+      </div>
+    </div>
+  </section>
+    </div></main>
+
+</body>
+</html>
