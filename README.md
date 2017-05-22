@@ -20,6 +20,9 @@ Jl. Tukad Pakerisan No.97, Panjer, Denpasar Sel., Kota Denpasar, Bali 80225
 
 Map and directions:
 
+Registration:
+http:/bit.ly/balijsmay2017
+
 General:
 https://www.google.co.id/maps/place/STIKI+Indonesia/@-8.690787,115.226223,15z/data=!4m2!3m1!1s0x0:0xb9b6c94ad0c08b24?sa=X&ved=0ahUKEwigpM_ytYLUAhWDsJQKHZHUDTgQ_BIIhgEwDg
 
