@@ -4,7 +4,7 @@
 
 Bali , Indonesia Chapter for Nodeschool in collaboration with BaliJS
 
-The next event will take place on ( TBA ).
+The next event will take place on September 29th , 2017.
 
 Here are some of the run-down of our event:
 + TBA
