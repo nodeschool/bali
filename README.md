@@ -10,7 +10,7 @@ Here are some of the run-down of our event:
 + TBA
 
 Venue:
-TBA
+Coworking Legian
 
 Map and directions:
 
