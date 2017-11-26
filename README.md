@@ -4,10 +4,11 @@
 
 Bali , Indonesia Chapter for Nodeschool in collaboration with BaliJS
 
-The next event will take place on [ TBA ].
+The next event will take place on Coworking Legian.
 
 Here are some of the run-down of our event:
-+ TBA
++ Presentation about SailsJS
++ Presentation about Instant Loading WebApp
 
 Venue:
 Coworking Legian
