@@ -7,8 +7,8 @@ Bali , Indonesia Chapter for Nodeschool in collaboration with BaliJS
 The next event will take place on Coworking Legian.
 
 Here are some of the run-down of our event:
-+ Presentation about SailsJS
-+ Presentation about Instant Loading WebApp
++ TBA
++ TBA
 
 Venue:
 Coworking Legian
@@ -21,7 +21,7 @@ OR
 https://www.meetup.com/BaliJS/
 
 General:
-TBA
+February 2018
 
 If you have a node JS project and/or would like to do a presentation during the meetups please contact us or leave a replay / issue in this repo.
 
